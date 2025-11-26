@@ -7,12 +7,14 @@
 class member
 {
     private:
+
     int ID;
     std::string name;
     std::string address;
 
     // Storing IDs of Borrowed Books
     std::vector<int> BorrowedBookIDs;
+
     // Auto-Assigning Member IDs (?)
     static int nextID;
 
@@ -27,6 +29,6 @@ class member
     std::vector<int> getBorrowedIDs() const;
 
     // Borrowing Books
-    void borrowBook(int bookID) const;
-    void returnBook (int bookID) const;
+    void borrowBook(int bookID);
+    void returnBook (int bookID);
 };

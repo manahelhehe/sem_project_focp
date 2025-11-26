@@ -5,11 +5,13 @@
 class book
 {
     private:
+
     int ID;
     std::string title;
     std::string ISBN;
     std::string author;
     bool borrowStatus;
+    
     // For auto-assigning book IDs (?)
     static int nextID;
 
