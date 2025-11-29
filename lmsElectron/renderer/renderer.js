@@ -1,59 +1,60 @@
-// ---------- MOCK DATABASE ----------
+// ---------- GLOBAL MOCK DATABASE ----------
 let books = [];
 let members = [];
 let nextBookID = 1000;
 let nextMemberID = 5000;
 
-// ---------- LOGIN PAGE ----------
+// ---------- MAIN SCRIPT ----------
 document.addEventListener('DOMContentLoaded', () => {
-    const loginBtn = document.getElementById('login-btn');
+
+    // ===== LOGIN PAGE =====
+    const loginBtn = document.getElementById('loginBtn');
     if (loginBtn) {
         const username = document.getElementById('username');
         const password = document.getElementById('password');
         const errorDiv = document.getElementById('login-error');
 
         loginBtn.addEventListener('click', () => {
-            if (username.value.trim() === "" || password.value.trim() === "") {
-                errorDiv.textContent = "Please enter username and password.";
+            if (!username.value.trim() || !password.value.trim()) {
+                if (errorDiv) errorDiv.textContent = "Please enter username and password.";
             } else {
                 window.location.href = "dashboard.html";
             }
         });
     }
 
-    let books = []; // Array of book objects
-    let members = []; // Array of member objects
+    // ===== DASHBOARD PAGE =====
+    const recList = document.getElementById("recommendations");
+    if (recList) {
+        const recBooks = ["Pride & Prejudice", "1984", "To Kill a Mockingbird"];
+        recBooks.forEach(book => {
+            const li = document.createElement("li");
+            li.textContent = book;
+            recList.appendChild(li);
+        });
+    }
 
+    const dashboardButtons = [
+        { id: 'add-book-btn', href: 'addbook.html' },
+        { id: 'add-member-btn', href: 'addmember.html' },
+        { id: 'search-book-btn', href: 'searchbook.html' },
+        { id: 'search-member-btn', href: 'searchmember.html' },
+        { id: 'issue-book-btn', href: 'issuebook.html' },
+        { id: 'return-book-btn', href: 'returnbook.html' },
+        { id: 'view-books-btn', href: 'viewbooks.html' },
+        { id: 'view-members-btn', href: 'viewmembers.html' }
+    ];
 
+    dashboardButtons.forEach(btn => {
+        const element = document.getElementById(btn.id);
+        if (element) element.addEventListener('click', () => window.location.href = btn.href);
+    });
 
-    // ---------- DASHBOARD PAGE ----------
-    const addBookBtn = document.getElementById('add-book-btn');
-    const addMemberBtn = document.getElementById('add-member-btn');
-    const searchBookBtn = document.getElementById('search-book-btn');
-    const searchMemberBtn = document.getElementById('search-member-btn');
-    const issueBookBtn = document.getElementById('issue-book-btn');
-    const returnBookBtn = document.getElementById('return-book-btn');
-    const viewBooksBtn = document.getElementById('view-books-btn');
-    const viewMembersBtn = document.getElementById('view-members-btn');
-    const recommendations = document.getElementById("recommendations");
-    const recBooks = ["Pride & Prejudice", "1984", "To Kill a Mockingbird"];
-    recBooks.forEach(book => {
-    const li = document.createElement("li");
-    li.textContent = book;
-    recommendations.appendChild(li);
-});
+    // ===== BACK BUTTONS =====
+    const backButtons = document.querySelectorAll("backBtn");
+    backButtons.forEach(btn => btn.addEventListener("click", () => window.history.back()));
 
-
-    if (addBookBtn) addBookBtn.addEventListener('click', () => window.location.href = "addbook.html");
-    if (addMemberBtn) addMemberBtn.addEventListener('click', () => window.location.href = "addmember.html");
-    if (searchBookBtn) searchBookBtn.addEventListener('click', () => window.location.href = "searchbook.html");
-    if (searchMemberBtn) searchMemberBtn.addEventListener('click', () => window.location.href = "searchmember.html");
-    if (issueBookBtn) issueBookBtn.addEventListener('click', () => window.location.href = "issuebook.html");
-    if (returnBookBtn) returnBookBtn.addEventListener('click', () => window.location.href = "returnbook.html");
-    if (viewBooksBtn) viewBooksBtn.addEventListener('click', () => window.location.href = "viewbooks.html");
-    if (viewMembersBtn) viewMembersBtn.addEventListener('click', () => window.location.href = "viewmembers.html");
-
-    // ---------- ADD BOOK PAGE ----------
+    // ===== ADD BOOK PAGE =====
     const addBookSubmit = document.getElementById('add-book-submit');
     if (addBookSubmit) {
         const msgDiv = document.getElementById('addbook-message');
@@ -63,16 +64,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const isbn = document.getElementById('book-isbn').value.trim();
 
             if (!title || !author || !isbn) {
-                msgDiv.style.color = "red";
-                msgDiv.textContent = "Please fill in all fields!";
+                if (msgDiv) { msgDiv.style.color = "red"; msgDiv.textContent = "Please fill in all fields!"; }
                 return;
             }
 
             const book = { id: nextBookID++, title, author, isbn };
             books.push(book);
 
-            msgDiv.style.color = "green";
-            msgDiv.textContent = `Book "${title}" added successfully!`;
+            if (msgDiv) { msgDiv.style.color = "green"; msgDiv.textContent = `Book "${title}" added successfully!`; }
 
             document.getElementById('book-title').value = "";
             document.getElementById('book-author').value = "";
@@ -80,9 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-
-
-    // ---------- ADD MEMBER PAGE ----------
+    // ===== ADD MEMBER PAGE =====
     const addMemberSubmit = document.getElementById('add-member-submit');
     if (addMemberSubmit) {
         const msgDiv = document.getElementById('addmember-message');
@@ -91,23 +88,21 @@ document.addEventListener('DOMContentLoaded', () => {
             const address = document.getElementById('member-address').value.trim();
 
             if (!name || !address) {
-                msgDiv.style.color = "red";
-                msgDiv.textContent = "Please fill in all fields!";
+                if (msgDiv) { msgDiv.style.color = "red"; msgDiv.textContent = "Please fill in all fields!"; }
                 return;
             }
 
             const member = { id: nextMemberID++, name, address };
             members.push(member);
 
-            msgDiv.style.color = "green";
-            msgDiv.textContent = `Member "${name}" added successfully!`;
+            if (msgDiv) { msgDiv.style.color = "green"; msgDiv.textContent = `Member "${name}" added successfully!`; }
 
             document.getElementById('member-name').value = "";
             document.getElementById('member-address').value = "";
         });
     }
 
-    // ---------- VIEW BOOKS PAGE ----------
+    // ===== VIEW BOOKS PAGE =====
     const booksTable = document.getElementById('books-table');
     if (booksTable) {
         const tbody = booksTable.querySelector('tbody');
@@ -119,7 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ---------- VIEW MEMBERS PAGE ----------
+    // ===== VIEW MEMBERS PAGE =====
     const membersTable = document.getElementById('members-table');
     if (membersTable) {
         const tbody = membersTable.querySelector('tbody');
@@ -130,4 +125,88 @@ document.addEventListener('DOMContentLoaded', () => {
             tbody.appendChild(tr);
         });
     }
+
+    // ===== SEARCH BOOK PAGE =====
+    const searchBookBtnPage = document.getElementById('search-book-btn-page');
+    if (searchBookBtnPage) {
+        const resultDiv = document.getElementById('search-book-result');
+        searchBookBtnPage.addEventListener('click', () => {
+            const query = document.getElementById('search-book-input').value.trim().toLowerCase();
+            if (!query) return;
+
+            if (resultDiv) resultDiv.innerHTML = "";
+            const results = books.filter(b => b.title.toLowerCase().includes(query) || b.author.toLowerCase().includes(query) || b.isbn.includes(query));
+            results.forEach(b => {
+                const p = document.createElement('p');
+                p.textContent = `ID: ${b.id}, Title: ${b.title}, Author: ${b.author}, ISBN: ${b.isbn}`;
+                if (resultDiv) resultDiv.appendChild(p);
+            });
+        });
+    }
+
+    // ===== SEARCH MEMBER PAGE =====
+    const searchMemberBtnPage = document.getElementById('search-member-btn-page');
+    if (searchMemberBtnPage) {
+        const resultDiv = document.getElementById('search-member-result');
+        searchMemberBtnPage.addEventListener('click', () => {
+            const query = document.getElementById('search-member-input').value.trim().toLowerCase();
+            if (!query) return;
+
+            if (resultDiv) resultDiv.innerHTML = "";
+            const results = members.filter(m => m.name.toLowerCase().includes(query) || m.address.toLowerCase().includes(query) || m.id.toString() === query);
+            results.forEach(m => {
+                const p = document.createElement('p');
+                p.textContent = `ID: ${m.id}, Name: ${m.name}, Address: ${m.address}`;
+                if (resultDiv) resultDiv.appendChild(p);
+            });
+        });
+    }
+
+    // ===== ISSUE BOOK PAGE =====
+    const issueBookSubmit = document.getElementById('issue-book-submit');
+    if (issueBookSubmit) {
+        const msgDiv = document.getElementById('issuebook-message');
+        issueBookSubmit.addEventListener('click', () => {
+            const bookID = parseInt(document.getElementById('issue-book-id').value);
+            const memberID = parseInt(document.getElementById('issue-member-id').value);
+            const book = books.find(b => b.id === bookID);
+            const member = members.find(m => m.id === memberID);
+
+            if (!book || !member) {
+                if (msgDiv) { msgDiv.style.color = "red"; msgDiv.textContent = "Invalid Book or Member ID."; }
+                return;
+            }
+
+            if (!book.issuedTo) {
+                book.issuedTo = memberID;
+                if (msgDiv) { msgDiv.style.color = "green"; msgDiv.textContent = `Book "${book.title}" issued to ${member.name}.`; }
+            } else {
+                if (msgDiv) { msgDiv.style.color = "red"; msgDiv.textContent = `Book "${book.title}" is already issued.`; }
+            }
+        });
+    }
+
+    // ===== RETURN BOOK PAGE =====
+    const returnBookSubmit = document.getElementById('return-book-submit');
+    if (returnBookSubmit) {
+        const msgDiv = document.getElementById('returnbook-message');
+        returnBookSubmit.addEventListener('click', () => {
+            const bookID = parseInt(document.getElementById('return-book-id').value);
+            const book = books.find(b => b.id === bookID);
+
+            if (!book || !book.issuedTo) {
+                if (msgDiv) { msgDiv.style.color = "red"; msgDiv.textContent = "Invalid Book ID or Book not issued."; }
+                return;
+            }
+
+            book.issuedTo = null;
+            if (msgDiv) { msgDiv.style.color = "green"; msgDiv.textContent = `Book "${book.title}" returned successfully.`; }
+        });
+    }
+
 });
+
+
+
+
+
