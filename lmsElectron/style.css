@@ -1,0 +1,98 @@
+/* ---------- General Styles ---------- */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f5f5f5;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+}
+
+h1, h2 {
+    color: #333;
+    margin-top: 30px;
+}
+
+/* ---------- Container Styles ---------- */
+#dashboard-container,
+#addbook-container,
+#addmember-container,
+#searchbook-container,
+#searchmember-container,
+#issuebook-container,
+#returnbook-container,
+#viewbooks-container,
+#viewmembers-container {
+    width: 80%;
+    max-width: 800px;
+    margin: 30px auto;
+    background-color: #fff;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0px 0px 15px rgba(0,0,0,0.1);
+}
+
+/* ---------- Input Fields ---------- */
+input[type="text"], input[type="password"] {
+    width: 80%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #aaa;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+/* ---------- Buttons ---------- */
+button {
+    padding: 10px 20px;
+    margin: 10px 5px;
+    border: none;
+    border-radius: 5px;
+    background-color: #0078D7;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+button:hover {
+    background-color: #005a9e;
+}
+
+/* ---------- Dashboard Button Grid ---------- */
+.button-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.button-grid button {
+    flex: 1 1 200px;
+    margin: 10px;
+}
+
+/* ---------- Table Styles ---------- */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+table th, table td {
+    padding: 10px;
+    border: 1px solid #ccc;
+    text-align: center;
+}
+
+table th {
+    background-color: #0078D7;
+    color: white;
+}
+
+/* ---------- Messages ---------- */
+#addbook-message,
+#addmember-message,
+#issuebook-message,
+#returnbook-message {
+    font-weight: bold;
+    margin-top: 10px;
+}
