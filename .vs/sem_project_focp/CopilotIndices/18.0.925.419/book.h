@@ -27,8 +27,8 @@ class book
     std::string getAuthor() const;
     std::string getISBN() const;
     bool getBorrowStatus() const;
-    int getissuedTo() const;
+    int getIssuedTo() const;
 
     void modifyBorrowStatus(bool status);
-    void setissuedTo(int memberID);
+    void setIssuedTo(int memberID);
 };
