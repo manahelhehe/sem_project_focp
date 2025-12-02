@@ -21,6 +21,7 @@ h1, h2 {
 #issuebook-container,
 #returnbook-container,
 #viewbooks-container,
+#borrowedbooks-container,
 #viewmembers-container {
     width: 80%;
     max-width: 800px;
