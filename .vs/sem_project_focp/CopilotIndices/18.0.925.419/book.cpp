@@ -29,6 +29,9 @@ bool book::getBorrowStatus() const
 {
     return this->borrowStatus;
 }
+void book::setIssuedTo() const
+{
+    this->issuedTo=memberID;
 
 void book::modifyBorrowStatus(bool status) 
 {
