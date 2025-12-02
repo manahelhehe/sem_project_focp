@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            const member = { id: nextMemberID++, name, address };
+            const member = { id: nextMemberID++, name, address, borrowedBooks: []};
             members.push(member);
 
             if (msgDiv) { msgDiv.style.color = "green"; msgDiv.textContent = `Member "${name}" added successfully!`; }
@@ -179,6 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!book.issuedTo) {
                 book.issuedTo = memberID;
+                member.borrowedBooks.push(bookID);
                 if (msgDiv) { msgDiv.style.color = "green"; msgDiv.textContent = `Book "${book.title}" issued to ${member.name}.`; }
             } else {
                 if (msgDiv) { msgDiv.style.color = "red"; msgDiv.textContent = `Book "${book.title}" is already issued.`; }
@@ -187,22 +188,40 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ===== RETURN BOOK PAGE =====
-    const returnBookSubmit = document.getElementById('return-book-submit');
-    if (returnBookSubmit) {
-        const msgDiv = document.getElementById('returnbook-message');
-        returnBookSubmit.addEventListener('click', () => {
-            const bookID = parseInt(document.getElementById('return-book-id').value);
-            const book = books.find(b => b.id === bookID);
+const returnBookSubmit = document.getElementById('return-book-submit');
+if (returnBookSubmit) {
+    const msgDiv = document.getElementById('returnbook-message');
 
-            if (!book || !book.issuedTo) {
-                if (msgDiv) { msgDiv.style.color = "red"; msgDiv.textContent = "Invalid Book ID or Book not issued."; }
-                return;
+    returnBookSubmit.addEventListener('click', () => {
+        const bookID = parseInt(document.getElementById('return-book-id').value);
+        const book = books.find(b => b.id === bookID);
+
+        if (!book || !book.issuedTo) {
+            if (msgDiv) { 
+                msgDiv.style.color = "red"; 
+                msgDiv.textContent = "Invalid Book ID or Book not issued."; 
             }
+            return;
+        }
 
-            book.issuedTo = null;
-            if (msgDiv) { msgDiv.style.color = "green"; msgDiv.textContent = `Book "${book.title}" returned successfully.`; }
-        });
-    }
+        // Find the member who borrowed this book
+        const member = members.find(m => m.id === book.issuedTo);
+
+        // Remove book from member's borrowed list
+        if (member) {
+            member.borrowedBooks = member.borrowedBooks.filter(id => id !== bookID);
+        }
+
+        // Mark book as returned
+        book.issuedTo = null;
+
+        if (msgDiv) { 
+            msgDiv.style.color = "green"; 
+            msgDiv.textContent = `Book "${book.title}" returned successfully.`; 
+        }
+    });
+}
+
 
 });
 
