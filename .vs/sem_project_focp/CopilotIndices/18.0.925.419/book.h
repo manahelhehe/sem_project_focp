@@ -11,6 +11,8 @@ class book
     std::string ISBN;
     std::string author;
     bool borrowStatus;
+
+    int issuedTo;
     
     // For auto-assigning book IDs (?)
     static int nextID;
@@ -25,6 +27,8 @@ class book
     std::string getAuthor() const;
     std::string getISBN() const;
     bool getBorrowStatus() const;
+    int getissuedTo() const;
 
     void modifyBorrowStatus(bool status);
+    void setissuedTo(int memberID);
 };
