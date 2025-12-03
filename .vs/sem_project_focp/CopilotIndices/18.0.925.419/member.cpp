@@ -6,7 +6,7 @@
 int member:: nextID=1000;
 
 member::member(const std::string& name, const std::string& address):
-    name(name), address(address), BorrowedBookIDs(BorrowedBookIDs)
+    name(name), address(address)
 {
     this -> ID = member::nextID++;
 }

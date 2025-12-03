@@ -26,7 +26,7 @@ class library
 
     // Adding Functions: 
 
-    void addBook(const std::string& title, const std::string& author);
+    void addBook(const std::string& title, const std::string& ISBN, const std::string& author);
     void addMember(const std::string& name, const std::string& address);
 
     // Searching Functions:
@@ -38,4 +38,12 @@ class library
     void displayBooks() const;
     void displayMembers() const;
     void displayBorrowedBooks(int memberID) const;
+
+    // Getting Functions:
+
+    const std::vector<book>& getBooks() const;
+    const std::vector<member>& getMembers() const;
+
+    void clearData();
+
 };
