@@ -1,0 +1,10 @@
+^C:\USERS\MUHAMMAD BILAL\SOURCE\REPOS\MANAHELHEHE\SEM_PROJECT_FOCP\BUILD\CMAKEFILES\53CDAEC8DE6B6A6662FEBA2C4BE0E220\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" "-SC:/Users/Muhammad Bilal/source/repos/manahelhehe/sem_project_focp" "-BC:/Users/Muhammad Bilal/source/repos/manahelhehe/sem_project_focp/build" --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file "C:/Users/Muhammad Bilal/source/repos/manahelhehe/sem_project_focp/build/sem_project_focp.slnx"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

@@ -17,7 +17,8 @@ int main() {
     else
         std::cout<<"Database Opened Successfully!"<<std::endl;
 
-    const char* sql = "SELECT bookID FROM books";
+    const char* sql = "INSERT INTO Books(Title, Author, ISBN, Year)"
+    "VALUES('Kiterunner', 'Khaled Hosseini', '9781594631931', 2003);";
 
     char* errmsg = nullptr;
 
@@ -29,7 +30,7 @@ int main() {
     }
 
     else
-        std::cout<<"Query Ran Successfully! ()"<<std::endl;
+        std::cout<<"Query Ran Successfully!"<<std::endl;
 
     sqlite3_close(db);
 
