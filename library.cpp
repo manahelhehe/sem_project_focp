@@ -67,13 +67,13 @@ bool library::returnBook(int bookID, int memberID)
 // PUBLIC: add a new book
 void library::addBook(const std::string& title, const std::string& ISBN, const std::string& author)
 {
-    books.emplace_back(title, ISBN, author);        // Creates a new entry in the books vector
+    books.emplace_back(title, ISBN, author, 0);        // Creates a new entry in the books vector
 }
 
 // PUBLIC: add a new member
-void library::addMember(const std::string& name, const std::string& address)
+void library::addMember(const std::string& name, const std::string& address, int& BorrowedBookID=0)
 {
-    members.emplace_back(name, address);    // Creates a new entry in members vector (better than pushback when using objects)
+    members.emplace_back(name, address, BorrowedBookID);    // Creates a new entry in members vector (better than pushback when using objects)
 }
 
 // PUBLIC: search books by title or author
@@ -141,7 +141,7 @@ void library::displayBorrowedBooks(int memberID) const
         return;
     }
 
-    std::vector<int> borrowed = m->getBorrowedIDs();
+    std::vector<int> borrowed = m->getBorrowedBookID();
 
     std::cout << "Borrowed books for member " << m->getName() << ":\n";
 

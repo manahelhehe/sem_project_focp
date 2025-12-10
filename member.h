@@ -12,21 +12,20 @@ class member
     std::string name;
     std::string address;
 
-    // Storing IDs of Borrowed Books
-    std::vector<int> BorrowedBookIDs;
+    int BorrowedBookID;
 
     // Auto-Assigning Member IDs (?)
     static int nextID;
 
     public:
     // Member Constructor
-    member(const std::string& name, const std::string& address);
+    member(const std::string& name, const std::string& address, int& BorrowedBookID);
 
     // Data Fetchers
     int getID() const;
     std::string getName() const;
     std::string getAddress() const;
-    std::vector<int> getBorrowedIDs() const;
+    int getBorrowedBookID() const;
 
     // Borrowing Books
     void borrowBook(int bookID);

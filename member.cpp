@@ -5,8 +5,8 @@
 
 int member:: nextID=1000;
 
-member::member(const std::string& name, const std::string& address):
-    name(name), address(address)
+member::member(const std::string& name, const std::string& address, int BorrowedBookID = 0):
+    name(name), address(address), BorrowedBookID(BorrowedBookID)
 {
     this -> ID = member::nextID++;
 }
@@ -26,18 +26,17 @@ std::string member::getAddress() const
     return this -> address;
 }
 
-std::vector<int> member::getBorrowedIDs() const
+int member::getBorrowedBookID() const
 {
-    return this -> BorrowedBookIDs;
+    return this -> BorrowedBookID;
 }
 
 void member::borrowBook(int bookID) 
 {
-    BorrowedBookIDs.push_back(bookID);
+    BorrowedBookID = bookID;
 }
 
 void member::returnBook(int bookID) 
 {
-    auto new_end = std::remove(BorrowedBookIDs.begin(), BorrowedBookIDs.end(), bookID);
-    BorrowedBookIDs.erase(new_end, BorrowedBookIDs.end());
+    BorrowedBookID = 0;
 }
