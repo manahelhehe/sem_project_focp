@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>View Books</title>
+    <title>View Members</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -15,15 +15,17 @@
                     <th>Address</th>
                     <th>Borrowed Books
                     </th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 <!-- Member rows will be dynamically added here -->
             </tbody>
         </table>
+        <button id="refresh-members-btn" style="margin-top:10px;">Refresh</button>
         <br>
         <button onclick="window.location.href='dashboard.html'">Back to Dashboard</button>
     </div>
-    <script src="renderer/renderer.js"></script>
+    <script src="renderer.js"></script>
 </body>
 </html>
