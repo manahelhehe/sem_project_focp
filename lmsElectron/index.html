@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>LMS Login</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<!-- index.html -->
+<body>
+    <h1>Login</h1>
+    <input type="text" id="username" placeholder="Username"><br>
+    <input type="password" id="password" placeholder="Password"><br>
+    <button id="loginBtn" style="position:relative; z-index:99999;" onclick="(function(){var u=document.getElementById('username'), p=document.getElementById('password'), e=document.getElementById('login-error'); if(!u||!p) return; if(!u.value.trim()||!p.value.trim()){ if(e) e.textContent='Please enter username and password.'; return;} try{ window.location.href='dashboard.html'; }catch(err){ try{ window.location.assign('dashboard.html'); }catch(e2){ try{ window.open('dashboard.html','_self'); }catch(e3){} } } })()">Login</button>
+    <div id="login-error" style="color:red; margin-top:10px;"></div>
+    <script src="renderer.js"></script>
+</body>

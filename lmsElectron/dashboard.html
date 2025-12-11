@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>LMS Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="dashboard-container">
+        <h1>Library Management System Dashboard</h1>
+
+        <div id="dashboard-stats" style="margin:12px 0; padding:10px; border:1px solid #ddd; border-radius:6px; background:#fafafa;">
+            <strong>Stats:</strong>
+            <div>Books: <span id="books-count">--</span></div>
+            <div>Members: <span id="members-count">--</span></div>
+            <div>Borrowed: <span id="borrowed-count">--</span></div>
+            <button id="refresh-stats-btn" style="margin-top:8px;">Refresh Stats</button>
+        </div>
+        
+        <!-- Quick Actions: fast issue/return with autosuggest -->
+        <div class="card quick-actions" id="quick-actions">
+            <button id="qa-toggle" class="btn-ghost" style="position:absolute; right:12px; top:12px;">▾</button>
+            <div class="qa-left">
+                <div class="qa-field">
+                    <label for="qa-book-input"><strong>Book (title or ID)</strong></label>
+                    <input type="text" id="qa-book-input" placeholder="Type title or ID...">
+                    <div id="qa-book-suggestions" class="suggestions" style="display:none"></div>
+                </div>
+            </div>
+            <div class="qa-right">
+                <div class="qa-field">
+                    <label for="qa-member-input"><strong>Member (name or ID)</strong></label>
+                    <input type="text" id="qa-member-input" placeholder="Type name or ID...">
+                    <div id="qa-member-suggestions" class="suggestions" style="display:none"></div>
+                </div>
+            </div>
+            <div class="qa-actions" style="display:flex; gap:8px; align-items:flex-end; margin-left:12px;">
+                <button id="qa-issue-btn">Quick Issue</button>
+                <button id="qa-return-btn" class="btn-ghost">Quick Return</button>
+            </div>
+        </div>
+        
+        <div class="button-grid">
+            <button onclick="window.location.href='addbook.html'">Add Book</button>
+            <button onclick="window.location.href='addmember.html'">Add Member</button>
+            <button onclick="window.location.href='searchbook.html'">Search Book</button>
+            <button onclick="window.location.href='searchmember.html'">Search Member</button>
+            <button onclick="window.location.href='issuebook.html'">Issue Book</button>
+            <button onclick="window.location.href='returnbook.html'">Return Book</button>
+            <button onclick="window.location.href='viewbooks.html'">View All Books</button>
+            <button onclick="window.location.href='viewmembers.html'">View All Members</button>
+            <button onclick="window.location.href='borrowedbooks.html'">View Borrowed Books</button>
+            <button onclick="window.location.href='help.html'">Help</button>
+        </div>
+    </div>
+    <div class="card" style="margin-top:14px; max-width:900px;">
+        <h2 style="margin-top:6px;">Recommended Books</h2>
+        <ul id="recommendations" style="text-align:left; padding-left:18px;"></ul>
+    </div>
+    <div class="card" style="margin-top:14px; max-width:900px;">
+        <h3 style="margin-top:6px;">Recently Added</h3>
+        <div id="recent-added" class="recent-list" aria-live="polite"></div>
+    </div>
+    <script src="renderer.js"></script>
+</body>
+</html>
