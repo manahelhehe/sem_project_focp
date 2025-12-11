@@ -1,0 +1,38 @@
+[
+{
+  "directory": "C:/Users/manah/sem_project_focp/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe  @CMakeFiles/sem_project_focp.dir/includes_CXX.rsp -g -std=gnu++17 -Wall -Wextra -pedantic -o CMakeFiles\\sem_project_focp.dir\\cli.cpp.obj -c C:\\Users\\manah\\sem_project_focp\\cli.cpp",
+  "file": "C:/Users/manah/sem_project_focp/cli.cpp",
+  "output": "CMakeFiles/sem_project_focp.dir/cli.cpp.obj"
+},
+{
+  "directory": "C:/Users/manah/sem_project_focp/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe  @CMakeFiles/sem_project_focp.dir/includes_CXX.rsp -g -std=gnu++17 -Wall -Wextra -pedantic -o CMakeFiles\\sem_project_focp.dir\\database.cpp.obj -c C:\\Users\\manah\\sem_project_focp\\database.cpp",
+  "file": "C:/Users/manah/sem_project_focp/database.cpp",
+  "output": "CMakeFiles/sem_project_focp.dir/database.cpp.obj"
+},
+{
+  "directory": "C:/Users/manah/sem_project_focp/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe  @CMakeFiles/sem_project_focp.dir/includes_CXX.rsp -g -std=gnu++17 -Wall -Wextra -pedantic -o CMakeFiles\\sem_project_focp.dir\\book.cpp.obj -c C:\\Users\\manah\\sem_project_focp\\book.cpp",
+  "file": "C:/Users/manah/sem_project_focp/book.cpp",
+  "output": "CMakeFiles/sem_project_focp.dir/book.cpp.obj"
+},
+{
+  "directory": "C:/Users/manah/sem_project_focp/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe  @CMakeFiles/sem_project_focp.dir/includes_CXX.rsp -g -std=gnu++17 -Wall -Wextra -pedantic -o CMakeFiles\\sem_project_focp.dir\\library.cpp.obj -c C:\\Users\\manah\\sem_project_focp\\library.cpp",
+  "file": "C:/Users/manah/sem_project_focp/library.cpp",
+  "output": "CMakeFiles/sem_project_focp.dir/library.cpp.obj"
+},
+{
+  "directory": "C:/Users/manah/sem_project_focp/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe  @CMakeFiles/sem_project_focp.dir/includes_CXX.rsp -g -std=gnu++17 -Wall -Wextra -pedantic -o CMakeFiles\\sem_project_focp.dir\\member.cpp.obj -c C:\\Users\\manah\\sem_project_focp\\member.cpp",
+  "file": "C:/Users/manah/sem_project_focp/member.cpp",
+  "output": "CMakeFiles/sem_project_focp.dir/member.cpp.obj"
+},
+{
+  "directory": "C:/Users/manah/sem_project_focp/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\gcc.exe  @CMakeFiles/sem_project_focp.dir/includes_C.rsp -g -Wall -Wextra -pedantic -std=c11 -o CMakeFiles\\sem_project_focp.dir\\external\\sqlite\\sqlite3.c.obj -c C:\\Users\\manah\\sem_project_focp\\external\\sqlite\\sqlite3.c",
+  "file": "C:/Users/manah/sem_project_focp/external/sqlite/sqlite3.c",
+  "output": "CMakeFiles/sem_project_focp.dir/external/sqlite/sqlite3.c.obj"
+}
+]

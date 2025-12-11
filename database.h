@@ -11,9 +11,14 @@ void createBooksTable(sqlite3* db);
 
 void createMembersTable(sqlite3* db);
 
-void insertBook(sqlite3* db, const book& b);
+// Inserts and returns the new row ID (auto-incremented)
+int insertBook(sqlite3* db, const book& b);
 
-void insertMember(sqlite3* db, const member& m);
+// Inserts member and returns new row ID
+int insertMember(sqlite3* db, const member& m);
+
+// Update a member's borrowed book id
+void updateMemberBorrow(sqlite3* db, int memberID, int borrowedBookID);
 
 void updateBookStatus(sqlite3* db, const book& b);
 

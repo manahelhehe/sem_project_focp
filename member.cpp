@@ -5,7 +5,7 @@
 
 int member:: nextID=1000;
 
-member::member(const std::string& name, const std::string& address, int BorrowedBookID = 0):
+member::member(const std::string& name, const std::string& address, int BorrowedBookID):
     name(name), address(address), BorrowedBookID(BorrowedBookID)
 {
     this -> ID = member::nextID++;

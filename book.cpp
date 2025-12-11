@@ -3,7 +3,7 @@
 
 int book::nextID=1000;
 
-book::book(const std::string& title, const std::string& ISBN, const std::string& author, int issuedTo = 0):
+book::book(const std::string& title, const std::string& ISBN, const std::string& author, int issuedTo):
     title(title), author(author), ISBN(ISBN), borrowStatus(false), issuedTo(issuedTo)
 {
     this -> ID = book::nextID++;
@@ -36,5 +36,10 @@ void book::setIssuedTo(int memberID)
 void book::modifyBorrowStatus(bool status) 
 {
     this->borrowStatus = status;
+}
+
+int book::getIssuedTo() const
+{
+    return this->issuedTo;
 }
 

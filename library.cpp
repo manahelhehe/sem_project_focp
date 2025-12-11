@@ -1,5 +1,9 @@
 #include "library.h"
 #include <iostream>
+#include "database.h"
+#include "external/sqlite/sqlite3.h"
+
+static const char* DB_PATH = "lms.db";
 
 // PRIVATE HELPER: find a book by ID
 book* library::findBook(int bookID)
@@ -39,6 +43,9 @@ bool library::checkOutBook(int bookID, int memberID)
     b->modifyBorrowStatus(true);
     b->setIssuedTo(memberID);
     m->borrowBook(bookID);
+    // persist changes
+    updateBookStatus(db, *b);
+    updateMemberBorrow(db, memberID, bookID);
     return true;
 }
 
@@ -61,19 +68,35 @@ bool library::returnBook(int bookID, int memberID)
     m->returnBook(bookID);
     b->setIssuedTo(0);
 
+    // persist changes
+    updateBookStatus(db, *b);
+    updateMemberBorrow(db, memberID, 0);
     return true;
 }
 
 // PUBLIC: add a new book
 void library::addBook(const std::string& title, const std::string& ISBN, const std::string& author)
 {
-    books.emplace_back(title, ISBN, author, 0);        // Creates a new entry in the books vector
+    // create book object (issuedTo = 0)
+    book b(title, ISBN, author, 0);
+    // insert into DB and get assigned ID
+    int newId = insertBook(db, b);
+    if (newId > 0) {
+        // force set id on object then push
+        *(int*)&b = newId;
+    }
+    books.push_back(b);
 }
 
 // PUBLIC: add a new member
-void library::addMember(const std::string& name, const std::string& address, int& BorrowedBookID=0)
+void library::addMember(const std::string& name, const std::string& address, int BorrowedBookID /*= 0*/)
 {
-    members.emplace_back(name, address, BorrowedBookID);    // Creates a new entry in members vector (better than pushback when using objects)
+    member m(name, address, BorrowedBookID);
+    int newId = insertMember(db, m);
+    if (newId > 0) {
+        *(int*)&m = newId;
+    }
+    members.push_back(m);
 }
 
 // PUBLIC: search books by title or author
@@ -141,30 +164,32 @@ void library::displayBorrowedBooks(int memberID) const
         return;
     }
 
-    std::vector<int> borrowed = m->getBorrowedBookID();
+    int borrowed = m->getBorrowedBookID();
 
     std::cout << "Borrowed books for member " << m->getName() << ":\n";
 
-    for (int id : borrowed)
+    if (borrowed == 0)
     {
-        const book* b = nullptr;
+        std::cout << "(none)\n";
+        return;
+    }
 
-        for (const auto& bk : books)
+    const book* b = nullptr;
+    for (const auto& bk : books)
+    {
+        if (bk.getID() == borrowed)
         {
-            if (bk.getID() == id)
-            {
-                b = &bk;
-                break;
-            }
+            b = &bk;
+            break;
         }
+    }
 
-        if (b)
-        {
-            std::cout << "ID: " << b->getID()
-                      << ", Title: " << b->getTitle()
-                      << ", Author: " << b->getAuthor()
-                      << std::endl;
-        }
+    if (b)
+    {
+        std::cout << "ID: " << b->getID()
+                  << ", Title: " << b->getTitle()
+                  << ", Author: " << b->getAuthor()
+                  << std::endl;
     }
 }
 
@@ -181,4 +206,18 @@ void library::clearData()
 {
     books.clear();
     members.clear();
+}
+
+// Constructor: open DB and load data
+library::library() {
+    openDatabase(db, DB_PATH);
+    createBooksTable(db);
+    createMembersTable(db);
+    loadBooks(db, books);
+    loadMembers(db, members);
+}
+
+// Destructor: close DB
+library::~library() {
+    closeDatabase(db);
 }

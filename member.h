@@ -19,7 +19,7 @@ class member
 
     public:
     // Member Constructor
-    member(const std::string& name, const std::string& address, int& BorrowedBookID);
+    member(const std::string& name, const std::string& address, int BorrowedBookID = 0);
 
     // Data Fetchers
     int getID() const;

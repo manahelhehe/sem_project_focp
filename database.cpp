@@ -52,55 +52,76 @@ void openDatabase(sqlite3* &db, const std::string& dbPath) {
     if(rc) {
         std::cerr << "Can't open database: " << sqlite3_errmsg(db) << std::endl;
     } else {
-        std::cout << "Database opened successfully!" << std::endl;
+        // Successful open - avoid printing to stdout to keep CLI protocol clean
+        std::cerr << "Database opened successfully (stderr)." << std::endl;
     }
 }
 
-void insertBook(sqlite3* db, const book& b) {
+int insertBook(sqlite3* db, const book& b) {
 
     const char* sql =
-        "INSERT INTO books (id, title, author, ISBN, borrowStatus, issuedTo) "
-        "VALUES (?, ?, ?, ?, ?, ?);";
+        "INSERT INTO books (title, author, ISBN, borrowStatus, issuedTo) "
+        "VALUES (?, ?, ?, ?, ?);";
 
     sqlite3_stmt* stmt = nullptr;
 
     sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
 
-    sqlite3_bind_int(stmt, 1, b.getID());                     // id
-    sqlite3_bind_text(stmt, 2, b.getTitle().c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_text(stmt, 3, b.getAuthor().c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_text(stmt, 4, b.getISBN().c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_int(stmt, 5, b.getBorrowStatus() ? 1 : 0);   // borrowStatus
-    sqlite3_bind_int(stmt, 6, b.getIssuedTo());               // issuedTo
+    sqlite3_bind_text(stmt, 1, b.getTitle().c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 2, b.getAuthor().c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 3, b.getISBN().c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_int(stmt, 4, b.getBorrowStatus() ? 1 : 0);   // borrowStatus
+    sqlite3_bind_int(stmt, 5, b.getIssuedTo());               // issuedTo
 
     if (sqlite3_step(stmt) != SQLITE_DONE)
     {
         std::cerr << "Failed to insert book.\n";
+        sqlite3_finalize(stmt);
+        return -1;
     }
 
     sqlite3_finalize(stmt);
 
+    // get last insert id
+    int lastId = (int)sqlite3_last_insert_rowid(db);
+    return lastId;
+
 }
 
-void insertMember(sqlite3* db, const member& m) {
+int insertMember(sqlite3* db, const member& m) {
     const char* sql =
-        "INSERT INTO members (id, name, address, BorrowedBookID) "
-        "VALUES (?, ?, ?, ?);";
+        "INSERT INTO members (name, address, BorrowedBookID) "
+        "VALUES (?, ?, ?);";
 
     sqlite3_stmt* stmt = nullptr;
 
     sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
 
-    sqlite3_bind_int(stmt, 1, m.getID()); // id
-    sqlite3_bind_text(stmt, 2, m.getName().c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_text(stmt, 3, m.getAddress().c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_int(stmt, 4, m.getBorrowedBookID()); // BorrowedBookID
+    sqlite3_bind_text(stmt, 1, m.getName().c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 2, m.getAddress().c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_int(stmt, 3, m.getBorrowedBookID()); // BorrowedBookID
 
     if (sqlite3_step(stmt) != SQLITE_DONE)
     {
         std::cerr << "Failed to insert member.\n";
+        sqlite3_finalize(stmt);
+        return -1;
     }
 
+    sqlite3_finalize(stmt);
+
+    return (int)sqlite3_last_insert_rowid(db);
+}
+
+void updateMemberBorrow(sqlite3* db, int memberID, int borrowedBookID) {
+    const char* sql = "UPDATE members SET BorrowedBookID = ? WHERE id = ?;";
+    sqlite3_stmt* stmt = nullptr;
+    sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+    sqlite3_bind_int(stmt, 1, borrowedBookID);
+    sqlite3_bind_int(stmt, 2, memberID);
+    if (sqlite3_step(stmt) != SQLITE_DONE) {
+        std::cerr << "Failed to update member borrowed book.\n";
+    }
     sqlite3_finalize(stmt);
 }
 

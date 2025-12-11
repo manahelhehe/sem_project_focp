@@ -5,6 +5,8 @@
 
 #include "book.h"
 #include "member.h"
+#include "database.h"
+#include "external/sqlite/sqlite3.h"
 
 class library
 {
@@ -12,12 +14,17 @@ class library
 
     std::vector<book> books;
     std::vector<member> members;
+    sqlite3* db = nullptr;
 
     // Object-Pointer Return-Type (?)
     book* findBook(int bookID);
     member* findMember(int memberID);
 
     public:
+
+    // constructor / destructor to manage DB
+    library();
+    ~library();
 
     // Transaction Functions: 
 
@@ -27,7 +34,7 @@ class library
     // Adding Functions: 
 
     void addBook(const std::string& title, const std::string& ISBN, const std::string& author);
-    void addMember(const std::string& name, const std::string& address);
+    void addMember(const std::string& name, const std::string& address, int BorrowedBookID = 0);
 
     // Searching Functions:
     std::vector<book*> searchBook(const std::string& query) const;
