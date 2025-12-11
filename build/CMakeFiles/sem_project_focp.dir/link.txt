@@ -1,3 +1,0 @@
-"C:\Program Files\CMake\bin\cmake.exe" -E rm -f CMakeFiles\sem_project_focp.dir/objects.a
-C:\msys64\ucrt64\bin\ar.exe qc CMakeFiles\sem_project_focp.dir/objects.a @CMakeFiles\sem_project_focp.dir\objects1.rsp
-C:\msys64\ucrt64\bin\g++.exe -g -Wl,--whole-archive CMakeFiles\sem_project_focp.dir/objects.a -Wl,--no-whole-archive -o bin\sem_project_focp.exe -Wl,--out-implib,libsem_project_focp.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\sem_project_focp.dir\linkLibs.rsp

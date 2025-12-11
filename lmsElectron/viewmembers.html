@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>View Members</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="viewmembers-container">
+        <h2>All Members</h2>
+        <table id="members-table" border="1">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Address</th>
+                    <th>Borrowed Books
+                    </th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Member rows will be dynamically added here -->
+            </tbody>
+        </table>
+        <button id="refresh-members-btn" style="margin-top:10px;">Refresh</button>
+        <br>
+        <button onclick="window.location.href='dashboard.html'">Back to Dashboard</button>
+    </div>
+    <script src="renderer.js"></script>
+</body>
+</html>
