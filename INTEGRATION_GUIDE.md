@@ -4,10 +4,10 @@
 This is how the integration was done for a C++ Backend with a Node.js Frontend (HTML/CSS/JS) running on Electron.
 Integration for this purpose can be done through two ways:
 1. Introducing a HTTP Server between both the ends.
-2. Introducing C++ as a child process within Electron using IPC (Inter Process Communication Handlers)
+2. Introducing C++ as a child process within Electron using IPC (Inter Process Communication Handlers) - went for this.
 ---
 
-## Backend Adjustments (v nice code, v minimal errors):
+## Backend Adjustments (amazing code, minimal adjustments required):
 Changed constructor in member.h, in member.cpp, removed default value of borrowedBookID in function definition so its only there in the header, changed addMember parameters to pass by value and in displayBorrowedBook function, changed borrowedBookID to int type
 
 ## Steps / Time taken
@@ -31,7 +31,7 @@ note: binary files are nvr committed to github, learned it the hard way
 
 ### Phase 2: Electron Setup — 3+ hours probably
 
-####usually, if not initialized, u initiazlize your electron setup, and NEVER commit node_modules (~330MB) to Git.
+#### usually, if not initialized, u initiazlize your electron setup, and NEVER commit node_modules (~330MB) to Git. HEADACHE.
 ```Initialization (Not Required in our Case)
 npm init -y
 npm install (installs node_modules)
@@ -54,7 +54,7 @@ npm install (installs node_modules)
 }
 ```
 
-#### 2.3 Key files that I had to create (* marks already made, only adjusted):
+#### 2.3 Imp files that I had to create (* marks already made, only adjusted):
 -* `main.js` — Electron main process (calls backend, acts as a bridge for IPC?)
 - `preload.js` — connects IPC Bridge with renderer
 - `backend-client.js` — Backend communication client
@@ -146,139 +146,51 @@ and a few others i cannot recall.
 
 ---
 
-### Phase 5: Test Each Feature — 30–45 min
-
-**Test in this order:**
-
-1. **Books Tab**
-   - Click "Show All" → should load any existing books
-   - Add a book: title="Harry Potter", ISBN="12345", Author="J.K. Rowling"
-   - Search for "Harry" → should find the book
-   - Verify table displays correctly
-
-2. **Members Tab**
-   - Click "Show All" → should load existing members
-   - Register a member: name="John Doe", address="123 Main St"
-   - Search by ID
-   - Verify table displays correctly
-
-3. **Borrow/Return Tab**
-   - Checkout: use the book ID and member ID from above
-   - Return: same IDs
-   - Check if book status changes in the Books tab
-
-4. **Error Handling**
+Tested Features, Tests still need to be done:
+**Error Handling**
    - Try to checkout a book twice (should fail)
    - Try invalid member ID (should fail)
-   - Try missing fields in forms
+   - Try missing fields 
 
 ---
 
-## What to Watch Out For
+## Things that went wrong and could go wrong AGAIN 
+1. Backend Path Problems
+sometimes the Electron app opens, but nothing works because it can’t find theC++ .exe.
+If that happens:
+The window will open but buttons won’t work.
+to check, open dev tools and check that in console the file actually exists at
+build/bin/sem_project_focp.exe
 
-### 1. **Backend Path Issues**
-- If the backend executable path is wrong, the app will launch but fail silently
-- **Fix:** Check `console.log()` in dev tools (Ctrl+Shift+I)
-- Ensure `build/bin/sem_project_focp.exe` exists before running
+2. Where the Database Gets Saved
+The backend creates library.db whenever and wherever its running, which is stored in project folder during development.
+However, this wont be ideal when we package our final app because then the file will become read only so windows recommends to save it at a safe place
+such as 
+%APPDATA%/LMS/library.db
 
-### 2. **Database Persistence**
-- By default, the backend creates `library.db` in the current working directory
-- During development, it goes to your project root
-- **For production:** Set a fixed DB path (e.g., `%APPDATA%/LMS/library.db`)
+4. Backend Timeouts
+Whenever frontend forwards a req to backend, theres a 30 second timeout.
+Iff the backend freezes or takes too long, the request will fail.
+Not probable currently but if we ever widen the scale of our app to the point of 1000+ books, we'll need an error message or a please wait etc message
+so that the app does not look frozen.
 
-### 3. **Input Validation**
-- The HTML form `required` attributes prevent empty submissions
-- The C++ backend also validates (redundant, but good)
-- Frontend should show user-friendly error messages (already done via `alert()`)
 
-### 4. **Timeouts**
-- The backend call has a 30-second timeout (see `backend-client.js`)
-- If the backend is slow or hung, requests will fail
-- For large datasets (1000+ books), add progress indicators
 
-### 5. **Cross-platform Paths**
-- Currently hardcoded for Windows (`sem_project_focp.exe`)
-- For macOS/Linux, modify:
-  ```javascript
-  function getBackendPath() {
-      const platform = process.platform;
-      const exeName = platform === 'win32' ? 'sem_project_focp.exe' : 'sem_project_focp';
-      return path.join(__dirname, '..', 'build', 'bin', exeName);
-  }
-  ```
 
 ---
 
-## Realistic Time Breakdown
-
-| Phase | Time | Complexity |
-|-------|------|-----------|
-| Backend build | 30 min | Low (done) |
-| Electron setup | 1–2 hr | Medium |
-| Configure backend path | 15 min | Low |
-| Test & debug | 1–2 hr | Medium–High |
-| **Total** | **3–4.5 hours** | — |
-
-**Note:** If you're new to Electron, expect +30–60 min for debugging IPC issues or understanding the preload script.
-
----
-
-## Things You Should Take Care Of
-
-### 1. **Data Persistence (High Priority)**
-- Implement a proper database initialization on first run
+## Things We Should Take Care Of
 - Add a "Clear Database" button for testing
 - Back up `library.db` before major updates
-
-### 2. **Error Handling (High Priority)**
-- Backend errors are shown via `alert()` — consider replacing with toast notifications
-- Add try-catch wrappers around all `ipcRenderer.invoke()` calls
 - Log errors to a file for debugging: `console.log()` → file
-
-### 3. **UI Responsiveness (Medium Priority)**
 - Add loading spinners while backend calls are in progress
-- Disable buttons during API calls to prevent double-submissions
-- Use `async/await` (already done in `renderer.js`)
-
-### 4. **Security (High Priority)**
 - Never pass user input directly to shell commands
-- Sanitize all inputs in both frontend and backend
-- Use `preload.js` to sandbox the renderer (already done)
-- Don't ship with debug console in production
-
-### 5. **Packaging & Distribution (Medium Priority)**
 - Use `electron-builder` to create an installer (`.msi` for Windows)
 - Include the backend binary in the packaged app
-- Sign the app on Windows/macOS for security
-- Create a separate "backend" folder during packaging
 
-### 6. **Database Schema (Low Priority for now)**
-- The backend currently uses in-memory storage (no actual DB queries yet!)
-- To persist data, implement SQLite queries in `database.cpp`
-- Schema:
-  ```sql
-  CREATE TABLE Books (
-      ID INTEGER PRIMARY KEY,
-      Title TEXT,
-      Author TEXT,
-      ISBN TEXT,
-      BorrowStatus BOOLEAN,
-      IssuedTo INTEGER
-  );
-  
-  CREATE TABLE Members (
-      ID INTEGER PRIMARY KEY,
-      Name TEXT,
-      Address TEXT,
-      BorrowedBookID INTEGER
-  );
-  ```
+## Quick Reference: API Methods (because i keep forgetting)
 
----
-
-## Quick Reference: API Methods
-
-Your frontend can call any of these via `window.api.*`:
+frontend can call any of these thru `window.api.*`:
 
 ```javascript
 // Books
@@ -296,21 +208,22 @@ await window.api.checkoutBook(bookID, memberID)      // → {message}
 await window.api.returnBook(bookID, memberID)        // → {message}
 ```
 
-All methods are async (return Promises) and may throw errors.
+All methods are async (return Promises) and may show stupid errors.
 
 ---
 
-## Next Steps After Getting It Working
-
-1. **Add real SQLite queries** in `database.cpp` (currently it's all in-memory)
-2. **Add user authentication** (login screen)
-3. **Add export/import** (CSV, PDF reports)
-4. **Add rich UI** (charts, search filters, pagination)
-5. **Package the app** with electron-builder for distribution
-
+## Things we need to change / which end needs to work on it
+- currently, the searches and the titles are case sensitive (backend)
+- Issue books uses member and book ids, could be changed to respond to multiple entries (BookID+Book Title, Mmeber ID + Mmeber Title) (backend)
+- In view all books, issued to 'MemberID' is appearing, could be changed to 'issued to memberName' (backend mostly, some frontend)
+- Refresh button is currently not funtioning
+## Things we could add
+- DeleteBook and DeleteMember Sections (front+backend)
+- Add a field for issueDate and DueDate (back+frontend)
+- Add a section displaying Due Dates and Set Fines for each due date missed.
 ---
 
-## Troubleshooting
+## Troubleshooting provided by copilot ohyuh
 
 | Issue | Solution |
 |-------|----------|
@@ -321,16 +234,3 @@ All methods are async (return Promises) and may throw errors.
 | App crashes on startup | Backend exited; check if `library.db` permissions are OK |
 
 ---
-
-## Summary
-
-You now have:
-- ✅ A fully functional C++ backend (CLI + JSON-RPC)
-- ✅ An Electron frontend with tab navigation
-- ✅ All 8 API methods wired up
-- ✅ Proper error handling and timeouts
-- ✅ A secure preload bridge
-
-**Next action:** Run `npm install` in `lmsElectron`, then `npm start`. Test each tab.
-
-Good luck! 🚀
