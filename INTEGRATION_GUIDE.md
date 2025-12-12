@@ -223,6 +223,48 @@ All methods are async (return Promises) and may show stupid errors.
 - Add a section displaying Due Dates and Set Fines for each due date missed.
 ---
 
+
+## How It Works (Data Flow)
+
+```
+User clicks "Add Book" in UI
+  ↓
+renderer.js calls window.api.addBook()
+  ↓
+preload.js forwards to ipcRenderer.invoke('add-book')
+  ↓
+main.js receives IPC event, calls backend.addBook()
+  ↓
+backend-client.js writes JSON to backend process stdin
+  ↓
+C++ backend (cli.cpp) reads JSON, processes, writes response to stdout
+  ↓
+backend-client.js parses response, resolves the promise
+  ↓
+window.api.addBook() promise resolves, UI updates
+```
+
+---
+## File Locations
+
+```
+c:\Users\manah\sem_project_focp\
+├── build/
+│   └── bin/
+│       └── sem_project_focp.exe       ← Backend executable
+├── lmsElectron/
+│   ├── main.js                         ← Updated: spawns backend
+│   ├── renderer.js                     ← Updated: uses backend via IPC
+│   ├── preload.js                      ← Unchanged (already correct)
+│   ├── backend-client.js               ← New: JSON-RPC client
+│   ├── index.html + 9 other .html      ← Your UI (unchanged)
+│   └── package.json                    ← npm dependencies
+└── cli.cpp, library.cpp, etc.          ← Backend source
+```
+
+---
+
+
 ## Troubleshooting provided by copilot ohyuh
 
 | Issue | Solution |
