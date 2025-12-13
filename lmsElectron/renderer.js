@@ -874,20 +874,19 @@ function initSearchMemberPage() {
         try {
             const result = await window.api.searchMember(query);
             if (resultDiv) resultDiv.innerHTML = "";
-            if (!result) { if (resultDiv) resultDiv.innerHTML = "<p>No member found.</p>"; return; }
+            if (!result || (Array.isArray(result) && result.length === 0)) {
+            resultDiv.innerHTML = "<p style='color:#666;'>No member found.</p>";
+            showToast('No member found', true);
+            return;
+            }
 
             // result may be a single object or an array of matches
             const items = Array.isArray(result) ? result : [result];
-            items.forEach(m => {
+            items.forEach(async (m) => {
                 const div = document.createElement('div');
                 div.style.cssText = 'border:1px solid #ddd; padding:12px; margin:10px 0; border-radius:5px; background:#f9f9f9;';
                 // try to show borrowed books for the member
-                async function loadBooks() {
                 const booksList = await fetchBooksCached();
-                console.log(booksList);
-            }           
-
-                loadBooks();
 
                 const borrowed = (booksList || []).filter(b => b.borrowed && (String(b.issuedTo) === String(m.id) || String(b.issuedTo) === String(m.name))).map(b => b.title);
                 div.innerHTML = `
