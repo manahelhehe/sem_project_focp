@@ -831,8 +831,9 @@ function initSearchBookPage() {
         try {
             const results = await window.api.searchBooks(query);
             if (resultDiv) resultDiv.innerHTML = "";
-            if (!results || results.length === 0) {
+            if (!results || Array.isArray(result) && results.length === 0) {
                 if (resultDiv) resultDiv.innerHTML = "<p>No results found.</p>";
+                showToast('No book found', true);
                 return;
             }
             results.forEach(b => {
@@ -875,9 +876,9 @@ function initSearchMemberPage() {
             const result = await window.api.searchMember(query);
             if (resultDiv) resultDiv.innerHTML = "";
             if (!result || (Array.isArray(result) && result.length === 0)) {
-            resultDiv.innerHTML = "<p style='color:#666;'>No member found.</p>";
-            showToast('No member found', true);
-            return;
+                if (resultDiv) resultDiv.innerHTML = "<p style='color:#666;'>No member found.</p>";
+                showToast('No member found', true);
+                return;
             }
 
             // result may be a single object or an array of matches
@@ -888,7 +889,7 @@ function initSearchMemberPage() {
                 // try to show borrowed books for the member
                 const booksList = await fetchBooksCached();
 
-                const borrowed = (booksList || []).filter(b => b.borrowed && (String(b.issuedTo) === String(m.id) || String(b.issuedTo) === String(m.name))).map(b => b.title);
+                const borrowed = (booksList || []).filter(b => b.borrowed && (String(b.issuedTo) === String(m.id))).map(b => b.title);
                 div.innerHTML = `
                     <strong>👤 ${m.name}</strong> ${borrowed.length?'<span style="font-size:12px;color:#666">• '+borrowed.join(', ')+'</span>':''}<br>
                     Member ID: ${m.id}<br>

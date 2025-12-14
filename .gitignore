@@ -1,4 +1,6 @@
 # Node/Electron
+.idea/
+package-lock.json
 node_modules/
 dist/
 build/
