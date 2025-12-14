@@ -240,7 +240,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initIssueBookPage();
     initReturnBookPage();
     initBorrowedBooksPage();
-    initBackButtons(); 
+    initBackButtons();
+    setupKeyboardShortcuts();
 });
 
 // ---------- QUICK ACTIONS (Dashboard) ----------
@@ -612,8 +613,8 @@ function initViewBooksPage() {
 }
 
     // export CSV
-    const exportBtn = document.getElementById('export-books-btn');
-    if (exportBtn) exportBtn.addEventListener('click', async () => {
+    const exportBooksBtn = document.getElementById('export-books-btn');
+    if (exportBooksBtn) exportBooksBtn.addEventListener('click', async () => {
         try {
             const list = await fetchBooksCached(true);
             if (!list || list.length === 0) { showToast('No books to export', true); return; }
@@ -814,6 +815,59 @@ function initViewMembersPage() {
     // --------------------------
     const refreshBtn = document.getElementById('refresh-members-btn');
     if (refreshBtn) refreshBtn.addEventListener('click', loadMembers);
+
+    // --------------------------
+    // EXPORT CSV
+    // --------------------------
+    const exportMembersBtn = document.getElementById('export-members-btn');
+    if (exportMembersBtn) exportMembersBtn.addEventListener('click', async () => {
+        try {
+            const list = await fetchMembersCached();
+            if (!list || list.length === 0) {
+                showToast('No members to export', true);
+                return;
+            }
+
+            const booksList = await fetchBooksCached();
+
+            // CSV Header
+            let csv = 'ID,Name,Address,Borrowed Books\n';
+
+            // CSV Rows
+            list.forEach(m => {
+                const borrowedTitles = [];
+                const fallback = (booksList || []).filter(b =>
+                    b.borrowed &&
+                    (String(b.issuedTo) === String(m.id) ||
+                     String(b.issuedTo) === String(m.name))
+                );
+                fallback.forEach(b => borrowedTitles.push(b.title));
+
+                const id = String(m.id || '').replace(/"/g, '""');
+                const name = String(m.name || '').replace(/"/g, '""');
+                const address = String(m.address || '').replace(/"/g, '""');
+                const borrowed = borrowedTitles.join('; ').replace(/"/g, '""');
+
+                csv += `"${id}","${name}","${address}","${borrowed}"\n`;
+            });
+
+            // Download
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `members_export_${Date.now()}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showToast('Members exported successfully!');
+        } catch (err) {
+            console.error('Export members error:', err);
+            showToast('Failed to export members: ' + err.message, true);
+        }
+    });
 }
 
 
@@ -827,14 +881,19 @@ function initSearchBookPage() {
     if (!input) return;
 
     const doSearch = async (query) => {
-        if (!query || query.length < 1) { if (resultDiv) resultDiv.innerHTML = ''; return; }
+        if (!query || query.length < 1) {
+            if (resultDiv) resultDiv.innerHTML = '';
+            return;
+        }
         try {
             const results = await window.api.searchBooks(query);
             if (resultDiv) resultDiv.innerHTML = "";
+            
             if (!results || results.length === 0) {
                 if (resultDiv) resultDiv.innerHTML = "<p>No results found.</p>";
                 return;
             }
+            
             results.forEach(b => {
                 const div = document.createElement('div');
                 div.style.cssText = 'border:1px solid #ddd; padding:12px; margin:10px 0; border-radius:5px; background:#f9f9f9;';
@@ -870,31 +929,34 @@ function initSearchMemberPage() {
     if (!input) return;
 
     const doMemberSearch = async (query) => {
-        if (!query || query.length < 1) { if (resultDiv) resultDiv.innerHTML = ''; return; }
+        if (!query || query.length < 1) {
+            if (resultDiv) resultDiv.innerHTML = '';
+            return;
+        }
+
         try {
             const result = await window.api.searchMember(query);
             if (resultDiv) resultDiv.innerHTML = "";
+
             if (!result || (Array.isArray(result) && result.length === 0)) {
-            resultDiv.innerHTML = "<p style='color:#666;'>No member found.</p>";
-            showToast('No member found', true);
-            return;
+                if (resultDiv) resultDiv.innerHTML = "<p style='color:#666;'>No member found.</p>";
+                return;
             }
 
             // result may be a single object or an array of matches
             const items = Array.isArray(result) ? result : [result];
-            items.forEach(async (m) => {
+            const booksList = await fetchBooksCached();
+            
+            items.forEach((m) => {
                 const div = document.createElement('div');
                 div.style.cssText = 'border:1px solid #ddd; padding:12px; margin:10px 0; border-radius:5px; background:#f9f9f9;';
-                // try to show borrowed books for the member
-                const booksList = await fetchBooksCached();
-
                 const borrowed = (booksList || []).filter(b => b.borrowed && (String(b.issuedTo) === String(m.id) || String(b.issuedTo) === String(m.name))).map(b => b.title);
                 div.innerHTML = `
                     <strong>👤 ${m.name}</strong> ${borrowed.length?'<span style="font-size:12px;color:#666">• '+borrowed.join(', ')+'</span>':''}<br>
                     Member ID: ${m.id}<br>
                     Address: ${m.address}
                 `;
-                resultDiv.appendChild(div);
+                if (resultDiv) resultDiv.appendChild(div);
             });
         } catch (err) {
             console.error('Search member error', err);
@@ -1057,4 +1119,66 @@ function initBorrowedBooksPage() {
             });
         });
     }
+}
+
+// ---------- KEYBOARD SHORTCUTS ----------
+function setupKeyboardShortcuts() {
+    console.log('Keyboard shortcuts initialized');
+    document.addEventListener('keydown', (e) => {
+        // ESC to close modals
+        if (e.key === 'Escape') {
+            const confirmModal = document.querySelector('.confirm-backdrop');
+            if (confirmModal) {
+                confirmModal.click();
+                return;
+            }
+            const infoModal = document.querySelector('.info-backdrop');
+            if (infoModal) {
+                infoModal.click();
+                return;
+            }
+        }
+
+        // Ctrl+K - Focus Quick Search (dashboard) or navigate to dashboard
+        if (e.ctrlKey && (e.key === 'k' || e.key === 'K')) {
+            e.preventDefault();
+            const qaInput = document.getElementById('quick-search-input');
+            if (qaInput) {
+                qaInput.focus();
+                qaInput.select();
+            } else {
+                // Navigate to dashboard if not there
+                window.location.href = 'dashboard.html';
+            }
+            return;
+        }
+
+        // Ctrl+M - Focus Member Search or navigate to search member page
+        if (e.ctrlKey && (e.key === 'm' || e.key === 'M')) {
+            e.preventDefault();
+            const memberInput = document.getElementById('search-member-input');
+            if (memberInput) {
+                memberInput.focus();
+                memberInput.select();
+            } else {
+                // Navigate to search member page
+                window.location.href = 'searchmember.html';
+            }
+            return;
+        }
+
+        // Ctrl+B - Focus Book Search or navigate to search book page
+        if (e.ctrlKey && (e.key === 'b' || e.key === 'B')) {
+            e.preventDefault();
+            const bookInput = document.getElementById('search-book-input');
+            if (bookInput) {
+                bookInput.focus();
+                bookInput.select();
+            } else {
+                // Navigate to search book page
+                window.location.href = 'searchbook.html';
+            }
+            return;
+        }
+    });
 }
