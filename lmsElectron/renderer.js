@@ -240,7 +240,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initIssueBookPage();
     initReturnBookPage();
     initBorrowedBooksPage();
-    initBackButtons(); 
+    initBackButtons();
+    setupKeyboardShortcuts();
 });
 
 // ---------- QUICK ACTIONS (Dashboard) ----------
@@ -1118,4 +1119,66 @@ function initBorrowedBooksPage() {
             });
         });
     }
+}
+
+// ---------- KEYBOARD SHORTCUTS ----------
+function setupKeyboardShortcuts() {
+    console.log('Keyboard shortcuts initialized');
+    document.addEventListener('keydown', (e) => {
+        // ESC to close modals
+        if (e.key === 'Escape') {
+            const confirmModal = document.querySelector('.confirm-backdrop');
+            if (confirmModal) {
+                confirmModal.click();
+                return;
+            }
+            const infoModal = document.querySelector('.info-backdrop');
+            if (infoModal) {
+                infoModal.click();
+                return;
+            }
+        }
+
+        // Ctrl+K - Focus Quick Search (dashboard) or navigate to dashboard
+        if (e.ctrlKey && (e.key === 'k' || e.key === 'K')) {
+            e.preventDefault();
+            const qaInput = document.getElementById('quick-search-input');
+            if (qaInput) {
+                qaInput.focus();
+                qaInput.select();
+            } else {
+                // Navigate to dashboard if not there
+                window.location.href = 'dashboard.html';
+            }
+            return;
+        }
+
+        // Ctrl+M - Focus Member Search or navigate to search member page
+        if (e.ctrlKey && (e.key === 'm' || e.key === 'M')) {
+            e.preventDefault();
+            const memberInput = document.getElementById('search-member-input');
+            if (memberInput) {
+                memberInput.focus();
+                memberInput.select();
+            } else {
+                // Navigate to search member page
+                window.location.href = 'searchmember.html';
+            }
+            return;
+        }
+
+        // Ctrl+B - Focus Book Search or navigate to search book page
+        if (e.ctrlKey && (e.key === 'b' || e.key === 'B')) {
+            e.preventDefault();
+            const bookInput = document.getElementById('search-book-input');
+            if (bookInput) {
+                bookInput.focus();
+                bookInput.select();
+            } else {
+                // Navigate to search book page
+                window.location.href = 'searchbook.html';
+            }
+            return;
+        }
+    });
 }
