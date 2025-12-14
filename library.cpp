@@ -1,10 +1,19 @@
 #include "library.h"
 #include <iostream>
+#include <algorithm>
+#include <cctype>
 #include "database.h"
 #include "external/sqlite/sqlite3.h"
 
 static const char* DB_PATH = "lms.db";
 
+auto toLower = [](const std::string& s)
+{
+    std::string result = s;
+    std::transform(result.begin(), result.end(), result.begin(),
+                   [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+    return result;
+};
 // PRIVATE HELPER: find a book by ID
 book* library::findBook(int bookID)
 {
@@ -26,6 +35,16 @@ member* library::findMember(int memberID) // Range-Based for loop for fetching e
     }
     return nullptr;
 }
+const member* library::findMember(int memberID) const// Range-Based for loop for fetching every book stored in the books vector
+{
+    for (auto& m : members)
+    {
+        if (m.getID() == memberID)   // If the ID of b = the ID in the query, address of b will be returned
+            return &m;
+    }
+    return nullptr;
+}
+
 
 // PUBLIC: check out a book
 bool library::checkOutBook(int bookID, int memberID)
@@ -83,7 +102,7 @@ void library::addBook(const std::string& title, const std::string& ISBN, const s
     int newId = insertBook(db, b);
     if (newId > 0) {
         // force set id on object then push
-        *(int*)&b = newId;
+        b.setID(newId);
     }
     books.push_back(b);
 }
@@ -94,23 +113,26 @@ void library::addMember(const std::string& name, const std::string& address, int
     member m(name, address, BorrowedBookID);
     int newId = insertMember(db, m);
     if (newId > 0) {
-        *(int*)&m = newId;
+        m.setID(newId);
     }
     members.push_back(m);
 }
 
 // PUBLIC: search books by title or author
-std::vector<book*> library::searchBook(const std::string& query) const
+std::vector<const book*> library::searchBook(const std::string& query) const
 {
-    std::vector<book*> results;
+    std::vector<const book*> results;
+
+    std::string lowerQuery = toLower(query);
 
     for (const auto& b : books)
     {
-        if (b.getTitle().find(query) != std::string::npos ||
-            b.getAuthor().find(query) != std::string::npos ||
-            b.getISBN().find(query) != std::string::npos)
+        std::string title = toLower(b.getTitle()), author = toLower(b.getAuthor()), ISBN = toLower(b.getISBN());
+        if (title.find(lowerQuery) != std::string::npos ||
+            author.find(lowerQuery) != std::string::npos ||
+            ISBN.find(lowerQuery) != std::string::npos)
         {
-            results.push_back(const_cast<book*>(&b));
+            results.push_back(&b);
         }
     }
 
@@ -118,14 +140,21 @@ std::vector<book*> library::searchBook(const std::string& query) const
 }
 
 // PUBLIC: search for a member by ID
-member* library::searchMember(int memberID) const
+std::vector <const member*> library::searchMember(const std::string& query) const
 {
+    std::string lowerQuery = toLower(query);
+    std::vector<const member*> results;
+
     for (const auto& m : members)
     {
-        if (m.getID() == memberID)
-            return const_cast<member*>(&m);
+        std::string name = toLower(m.getName()), address = toLower(m.getAddress());
+        if (name.find(lowerQuery) != std::string::npos ||
+            address.find(lowerQuery) != std::string::npos)
+        {
+            results.push_back(&m);
+        }
     }
-    return nullptr;
+    return results;
 }
 
 // PUBLIC: display all books
@@ -156,8 +185,8 @@ void library::displayMembers() const
 
 // PUBLIC: display books borrowed by a specific member
 void library::displayBorrowedBooks(int memberID) const
-{
-    member* m = searchMember(memberID);
+ {
+    const member* m = findMember(memberID);
     if (!m)
     {
         std::cout << "Member not found.\n";

@@ -17,9 +17,13 @@ class member
     // Auto-Assigning Member IDs (?)
     static int nextID;
 
+
     public:
     // Member Constructor
     member(const std::string& name, const std::string& address, int BorrowedBookID = 0);
+
+
+    void setID(int id);
 
     // Data Fetchers
     int getID() const;

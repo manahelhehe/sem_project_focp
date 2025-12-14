@@ -21,6 +21,7 @@ std::string member::getName() const
     return this -> name;
 }
 
+
 std::string member::getAddress() const
 {
     return this -> address;
@@ -39,4 +40,9 @@ void member::borrowBook(int bookID)
 void member::returnBook(int bookID) 
 {
     BorrowedBookID = 0;
+}
+
+void member::setID(int id)
+{
+    ID = id;
 }

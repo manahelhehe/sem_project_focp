@@ -20,6 +20,7 @@ class book
     public:
     // Book Constructor
     book (const std::string& title, const std::string& ISBN, const std::string& author, int issuedTo);
+    void setID(int id);
 
     // Data Fetchers:
     int getID() const;
@@ -31,4 +32,5 @@ class book
 
     void modifyBorrowStatus(bool status);
     void setIssuedTo(int memberID);
+
 };

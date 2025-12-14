@@ -17,10 +17,13 @@ class library
     sqlite3* db = nullptr;
 
     // Object-Pointer Return-Type (?)
-    book* findBook(int bookID);
-    member* findMember(int memberID);
 
     public:
+
+    book* findBook(int bookID);
+    member* findMember(int memberID);
+    const member* findMember(int memberID) const;
+
 
     // constructor / destructor to manage DB
     library();
@@ -37,8 +40,8 @@ class library
     void addMember(const std::string& name, const std::string& address, int BorrowedBookID = 0);
 
     // Searching Functions:
-    std::vector<book*> searchBook(const std::string& query) const;
-    member* searchMember(int memberID) const;
+    std::vector<const book*> searchBook(const std::string& query) const;
+    std::vector <const member*> searchMember(const std::string& query) const;
 
     // Displaying Functions: 
 

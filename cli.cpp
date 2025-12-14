@@ -236,7 +236,7 @@ int main() {
                 std::string q = parser.getString("query", "");
 
                 if (memberID != 0) {
-                    auto* m = lib.searchMember(memberID);
+                    auto* m = lib.findMember(memberID);
                     if (m) {
                         std::stringstream ss;
                         ss << "{"

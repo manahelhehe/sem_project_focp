@@ -1,6 +1,8 @@
 #include "book.h"
 #include <iostream>
 
+#include "member.h"
+
 int book::nextID=1000;
 
 book::book(const std::string& title, const std::string& ISBN, const std::string& author, int issuedTo):
@@ -9,6 +11,9 @@ book::book(const std::string& title, const std::string& ISBN, const std::string&
     this -> ID = book::nextID++;
 }
 
+void book::setID(int id) {
+    ID = id;
+}
 int book::getID() const
 {
     return this -> ID;
