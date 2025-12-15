@@ -52,8 +52,7 @@ function initBackend() {
     });
 
     ipcMain.handle('delete-book', async (event, id) => {
-        // Delete not implemented in backend yet, so we skip
-        return { message: 'Delete not yet supported' };
+        return backend.call('delete-book', { bookID: id });
     });
 
     // IPC: Member operations
@@ -67,8 +66,7 @@ function initBackend() {
     });
 
     ipcMain.handle('delete-member', async (event, id) => {
-        // Delete not implemented in backend yet
-        return { message: 'Delete not yet supported' };
+        return backend.call('delete-member', { memberID: id });
     });
 
     // IPC: Search operations

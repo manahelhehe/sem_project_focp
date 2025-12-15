@@ -233,6 +233,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initDashboardStats();
     initAddBookPage();
     initAddMemberPage();
+    initDeleteBookPage();
+    initDeleteMemberPage();
     initViewBooksPage();
     initViewMembersPage();
     initSearchBookPage();
@@ -522,6 +524,162 @@ function initAddMemberPage() {
             if (msgDiv) { msgDiv.style.color = "red"; msgDiv.textContent = `❌ Error: ${err.message}`; }
         }
     });
+}
+
+//---DELETE BOOK PAGE 
+function initDeleteBookPage() {
+    const searchBtn = document.getElementById('delete-book-btn');
+    if (!searchBtn) return;
+
+    const resultDiv = document.getElementById('delete-book-results');
+    const input = document.getElementById('delete-book-input');
+    if (!input || !resultDiv) return;
+
+    const doSearch = async (query) => {
+        if (!query || query.length < 1) {
+            resultDiv.innerHTML = '';
+            return;
+        }
+        try {
+            const results = await window.api.searchBooks(query);
+            resultDiv.innerHTML = "";
+            
+            if (!results || results.length === 0) {
+                resultDiv.innerHTML = "<p>No books found.</p>";
+                return;
+            }
+            
+            // Show each result with a delete button
+            results.forEach(b => {
+                const div = document.createElement('div');
+                div.style.cssText = 'border:1px solid #ddd; padding:12px; margin:10px 0; border-radius:5px; background:#f9f9f9; display:flex; justify-content:space-between; align-items:center;';
+                div.innerHTML = `
+                    <div>
+                        <strong>📚 ${b.title}</strong><br>
+                        Author: ${b.author}<br>
+                        ISBN: ${b.isbn}<br>
+                        ID: ${b.id}
+                    </div>
+                    <button class="delete-book-btn" data-id="${b.id}" data-title="${b.title}" style="padding:8px 16px; background:#d32f2f; color:white; border:none; border-radius:4px; cursor:pointer;">Delete</button>
+                `;
+                resultDiv.appendChild(div);
+            });
+        } catch (err) {
+            console.error('Search books error', err);
+            showToast('Search failed: ' + err.message, true);
+            resultDiv.innerHTML = `<p style="color:red;">Error: ${err.message}</p>`;
+        }
+    };
+
+    // Handle delete button clicks via delegation
+    resultDiv.addEventListener('click', async (e) => {
+        const btn = e.target.closest('.delete-book-btn');
+        if (!btn) return;
+
+        const bookId = parseInt(btn.dataset.id);
+        const bookTitle = btn.dataset.title;
+
+        const confirmed = await showConfirmModal('Delete Book', `Are you sure you want to delete "${bookTitle}"?`);
+        if (!confirmed) return;
+
+        try {
+            btn.disabled = true;
+            await window.api.deleteBook(bookId);
+            showToast(`Book "${bookTitle}" deleted successfully!`);
+            _bookCache.ts = 0; // invalidate cache
+            // Re-search to update results
+            doSearch(input.value.trim());
+        } catch (err) {
+            btn.disabled = false;
+            console.error('Delete book error', err);
+            showToast('Delete failed: ' + err.message, true);
+        }
+    });
+
+    // Attach event listeners
+    const debouncedSearch = debounce((ev) => doSearch(ev.target.value.trim()), 220);
+    input.addEventListener('input', debouncedSearch);
+    searchBtn.addEventListener('click', () => doSearch(input.value.trim()));
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') doSearch(input.value.trim()); });
+}
+
+//------DELETE MEMBERS PAGE 
+function initDeleteMemberPage() {
+    const searchBtn = document.getElementById('delete-member-btn');
+    if (!searchBtn) return;
+
+    const resultDiv = document.getElementById('delete-member-results');
+    const input = document.getElementById('delete-member-input');
+    if (!input || !resultDiv) return;
+
+    const doSearch = async (query) => {
+        if (!query || query.length < 1) {
+            resultDiv.innerHTML = '';
+            return;
+        }
+        try {
+            const result = await window.api.searchMember(query);
+            resultDiv.innerHTML = "";
+            
+            // Normalize to array (backend might return single object or array)
+            const results = result ? (Array.isArray(result) ? result : [result]) : [];
+            
+            if (!results || results.length === 0) {
+                resultDiv.innerHTML = "<p>No members found.</p>";
+                return;
+            }
+            
+            // Show each result with a delete button
+            results.forEach(m => {
+                const div = document.createElement('div');
+                div.style.cssText = 'border:1px solid #ddd; padding:12px; margin:10px 0; border-radius:5px; background:#f9f9f9; display:flex; justify-content:space-between; align-items:center;';
+                div.innerHTML = `
+                    <div>
+                        <strong>👤 ${m.name}</strong><br>
+                        Address: ${m.address}<br>
+                        ID: ${m.id}
+                    </div>
+                    <button class="delete-member-btn" data-id="${m.id}" data-name="${m.name}" style="padding:8px 16px; background:#d32f2f; color:white; border:none; border-radius:4px; cursor:pointer;">Delete</button>
+                `;
+                resultDiv.appendChild(div);
+            });
+        } catch (err) {
+            console.error('Search members error', err);
+            showToast('Search failed: ' + err.message, true);
+            resultDiv.innerHTML = `<p style="color:red;">Error: ${err.message}</p>`;
+        }
+    };
+
+    // Handle delete button clicks via delegation
+    resultDiv.addEventListener('click', async (e) => {
+        const btn = e.target.closest('.delete-member-btn');
+        if (!btn) return;
+
+        const memberId = parseInt(btn.dataset.id);
+        const memberName = btn.dataset.name;
+
+        const confirmed = await showConfirmModal('Delete Member', `Are you sure you want to delete "${memberName}"?`);
+        if (!confirmed) return;
+
+        try {
+            btn.disabled = true;
+            await window.api.deleteMember(memberId);
+            showToast(`Member "${memberName}" deleted successfully!`);
+            _memberCache.ts = 0; // invalidate cache
+            // Re-search to update results
+            doSearch(input.value.trim());
+        } catch (err) {
+            btn.disabled = false;
+            console.error('Delete member error', err);
+            showToast('Delete failed: ' + err.message, true);
+        }
+    });
+
+    // Attach event listeners
+    const debouncedSearch = debounce((ev) => doSearch(ev.target.value.trim()), 220);
+    input.addEventListener('input', debouncedSearch);
+    searchBtn.addEventListener('click', () => doSearch(input.value.trim()));
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') doSearch(input.value.trim()); });
 }
 
 // ---------- VIEW BOOKS PAGE ----------

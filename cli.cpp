@@ -236,7 +236,15 @@ int main() {
                 std::string q = parser.getString("query", "");
 
                 if (memberID != 0) {
-                    auto* m = lib.findMember(memberID);
+                    // Search by member ID - find in members list
+                    const auto& members = lib.getMembers();
+                    const member* m = nullptr;
+                    for (const auto& mem : members) {
+                        if (mem.getID() == memberID) {
+                            m = &mem;
+                            break;
+                        }
+                    }
                     if (m) {
                         std::stringstream ss;
                         ss << "{"
@@ -250,28 +258,48 @@ int main() {
                         sendError(id, "Member not found");
                     }
                 } else if (!q.empty()) {
-                    // search by name substring (case-sensitive simple substring match)
-                    const auto& members = lib.getMembers();
-                    bool found = false;
-                    std::stringstream ss; ss << "[";
+                    // search by name substring
+                    auto results = lib.searchMember(q);
+                    std::stringstream ss;
+                    ss << "[";
                     bool first = true;
-                    for (const auto& m : members) {
-                        if (m.getName().find(q) != std::string::npos) {
-                            if (!first) ss << ",";
-                            ss << "{"
-                               << "\"id\":" << m.getID()
-                               << ",\"name\":\"" << JSON::escape(m.getName()) << "\""
-                               << ",\"address\":\"" << JSON::escape(m.getAddress()) << "\""
-                               << ",\"borrowedBookId\":" << m.getBorrowedBookID()
-                               << "}";
-                            first = false; found = true;
-                        }
+                    for (const auto* m : results) {
+                        if (!first) ss << ",";
+                        ss << "{"
+                           << "\"id\":" << m->getID()
+                           << ",\"name\":\"" << JSON::escape(m->getName()) << "\""
+                           << ",\"address\":\"" << JSON::escape(m->getAddress()) << "\""
+                           << ",\"borrowedBookId\":" << m->getBorrowedBookID()
+                           << "}";
+                        first = false;
                     }
                     ss << "]";
-                    if (found) sendResponse(id, true, ss.str()); else sendResponse(id, true, "[]");
+                    sendResponse(id, true, ss.str());
                 } else {
                     sendError(id, "Missing required field: memberID or query");
                 }
+            }
+            else if (method == "delete-book") {
+                int bookID = parser.getInt("bookID", 0);
+                
+                if (bookID == 0) {
+                    sendError(id, "Missing required field: bookID");
+                    continue;
+                }
+                
+                lib.deleteBook(bookID);
+                sendResponse(id, true, "{\"message\":\"Book deleted successfully\"}");
+            }
+            else if (method == "delete-member") {
+                int memberID = parser.getInt("memberID", 0);
+                
+                if (memberID == 0) {
+                    sendError(id, "Missing required field: memberID");
+                    continue;
+                }
+                
+                lib.deleteMember(memberID);
+                sendResponse(id, true, "{\"message\":\"Member deleted successfully\"}");
             }
             else {
                 sendError(id, "Unknown method: " + method);

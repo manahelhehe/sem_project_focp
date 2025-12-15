@@ -118,6 +118,34 @@ void library::addMember(const std::string& name, const std::string& address, int
     members.push_back(m);
 }
 
+// PUBLIC: delete a book
+void library::deleteBook(int bookID)
+{
+    // Remove from in-memory vector
+    auto it = std::find_if(books.begin(), books.end(),
+                          [bookID](const book& b) { return b.getID() == bookID; });
+    if (it != books.end()) {
+        books.erase(it);
+    }
+    
+    // Delete from database
+    ::deleteBook(db, bookID);
+}
+
+// PUBLIC: delete a member
+void library::deleteMember(int memberID)
+{
+    // Remove from in-memory vector
+    auto it = std::find_if(members.begin(), members.end(),
+                          [memberID](const member& m) { return m.getID() == memberID; });
+    if (it != members.end()) {
+        members.erase(it);
+    }
+    
+    // Delete from database
+    ::deleteMember(db, memberID);
+}
+
 // PUBLIC: search books by title or author
 std::vector<const book*> library::searchBook(const std::string& query) const
 {

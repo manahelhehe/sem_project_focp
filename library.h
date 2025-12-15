@@ -39,6 +39,11 @@ class library
     void addBook(const std::string& title, const std::string& ISBN, const std::string& author);
     void addMember(const std::string& name, const std::string& address, int BorrowedBookID = 0);
 
+    // Deleting Functions:
+
+    void deleteBook(int bookID);
+    void deleteMember(int memberID);
+
     // Searching Functions:
     std::vector<const book*> searchBook(const std::string& query) const;
     std::vector <const member*> searchMember(const std::string& query) const;

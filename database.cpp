@@ -196,6 +196,32 @@ void loadMembers(sqlite3* db, std::vector<member>& members) {
     sqlite3_finalize(stmt);
 }
 
+void deleteBook(sqlite3* db, int bookID) {
+    const char* sql = "DELETE FROM books WHERE id = ?;";
+    sqlite3_stmt* stmt = nullptr;
+    sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+    sqlite3_bind_int(stmt, 1, bookID);
+    
+    if (sqlite3_step(stmt) != SQLITE_DONE) {
+        std::cerr << "Failed to delete book.\n";
+    }
+    
+    sqlite3_finalize(stmt);
+}
+
+void deleteMember(sqlite3* db, int memberID) {
+    const char* sql = "DELETE FROM members WHERE id = ?;";
+    sqlite3_stmt* stmt = nullptr;
+    sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+    sqlite3_bind_int(stmt, 1, memberID);
+    
+    if (sqlite3_step(stmt) != SQLITE_DONE) {
+        std::cerr << "Failed to delete member.\n";
+    }
+    
+    sqlite3_finalize(stmt);
+}
+
 void closeDatabase(sqlite3* db) {
     if (db)
         sqlite3_close(db);

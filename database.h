@@ -26,4 +26,8 @@ void loadBooks(sqlite3* db, std::vector<book>& books);
 
 void loadMembers(sqlite3* db, std::vector<member>& members);
 
+void deleteBook(sqlite3* db, int bookID);
+
+void deleteMember(sqlite3* db, int memberID);
+
 void closeDatabase(sqlite3* db);
