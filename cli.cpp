@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <cctype>
 #include <vector>
 #include <cstring>
 #include "library.h"
@@ -158,8 +159,9 @@ int main() {
                     sendError(id, "Missing required fields: title, isbn, author, genre");
                     continue;
                 }
-                
-                lib.addBook(title, isbn, author, genre);
+                Genre g = book::stringtoGenre(genre); // converts std::string to Genre
+
+                lib.addBook(title, isbn, author, g);
                 sendResponse(id, true, "{\"message\":\"Book added successfully\"}");
             }
             else if (method == "addMember") {

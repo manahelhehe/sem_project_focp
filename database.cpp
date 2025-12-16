@@ -61,8 +61,8 @@ void openDatabase(sqlite3* &db, const std::string& dbPath) {
 int insertBook(sqlite3* db, const book& b) {
 
     const char* sql =
-        "INSERT INTO books (title, author, ISBN) "
-        "VALUES (?, ?, ?);";
+        "INSERT INTO books (title, author, ISBN, genre) "
+        "VALUES (?, ?, ?, ?);";
 
     sqlite3_stmt* stmt = nullptr;
 
@@ -71,6 +71,7 @@ int insertBook(sqlite3* db, const book& b) {
     sqlite3_bind_text(stmt, 1, b.getTitle().c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(stmt, 2, b.getAuthor().c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(stmt, 3, b.getISBN().c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 4, book::genretoString(b.getGenre()).c_str(), -1 , SQLITE_TRANSIENT);
 
     if (sqlite3_step(stmt) != SQLITE_DONE)
     {
@@ -145,7 +146,7 @@ void updateBookStatus(sqlite3* db, const book& b) {
 }
 
 void loadBooks(sqlite3* db, std::vector<book>& books) {
-    const char* sql = "SELECT id, title, author, ISBN, borrowStatus, issuedTo FROM books;";
+    const char* sql = "SELECT id, title, author, ISBN, genre, borrowStatus, issuedTo FROM books;";
 
     sqlite3_stmt* stmt = nullptr;
     sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
@@ -156,15 +157,17 @@ void loadBooks(sqlite3* db, std::vector<book>& books) {
         std::string title = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
         std::string author = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
         std::string isbn = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
-        std::string genre = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4));
-        int borrowStatus = sqlite3_column_int(stmt, 4);
-        int issuedTo = sqlite3_column_int(stmt, 5);
+        std::string genreStr = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4));
+        int borrowStatus = sqlite3_column_int(stmt, 5);
+        int issuedTo = sqlite3_column_int(stmt, 6);
+
+        Genre genre = book::stringtoGenre(genreStr);
 
         book b(title, isbn, author, genre, issuedTo);
         b.modifyBorrowStatus(borrowStatus == 1);
 
         // Force restore ID
-        *(int*)&b = id;  // sets private ID directly
+        b.setID(id);// sets private ID directly
 
         books.push_back(b);
     }
@@ -185,10 +188,11 @@ void loadMembers(sqlite3* db, std::vector<member>& members) {
         std::string address = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
         int borrowedID = sqlite3_column_int(stmt, 3);
 
+
         member m(name, address, borrowedID);
 
         // Restore ID
-        *(int*)&m = id;
+        m.setID(id);
 
         members.push_back(m);
     }

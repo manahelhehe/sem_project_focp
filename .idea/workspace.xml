@@ -19,6 +19,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4c40431e-767c-4b9b-8706-7e8639c7f80b" name="Changes" comment="database">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/book.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/book.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/book.h" beforeDir="false" afterPath="$PROJECT_DIR$/book.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cli.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/cli.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/database.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/database.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/library.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library.h" beforeDir="false" afterPath="$PROJECT_DIR$/library.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lmsElectron/lms.db" beforeDir="false" afterPath="$PROJECT_DIR$/lmsElectron/lms.db" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -83,7 +90,7 @@
     "cf.first.check.clang-format": "false",
     "cidr.known.project.marker": "true",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "Merging main",
+    "git-widget-placeholder": "main",
     "junie.onboarding.icon.badge.shown": "true",
     "last_opened_file_path": "C:/Users/Muhammad Bilal/source/repos/manahelhehe/sem_project_focp",
     "node.js.detected.package.eslint": "true",
