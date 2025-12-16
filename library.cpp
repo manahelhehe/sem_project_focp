@@ -7,13 +7,21 @@
 
 static const char* DB_PATH = "lms.db";
 
-auto toLower = [](const std::string& s)
+std::string library::toLower(const std::string& s) const
 {
     std::string result = s;
     std::transform(result.begin(), result.end(), result.begin(),
-                   [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+                   [](unsigned char c){ return std::tolower(c); });
     return result;
-};
+}
+
+int library::countBooksByGenreRecursive(Genre genre, size_t index) const {
+    const auto& books = getBooks(); // your existing getter
+    if (index >= books.size()) return 0; // base case: no more books
+    int count = (books[index].getGenre() == genre) ? 1 : 0;
+    return count + countBooksByGenreRecursive(genre, index + 1); // recursive call
+}
+
 // PRIVATE HELPER: find a book by ID
 book* library::findBook(int bookID)
 {
@@ -95,12 +103,13 @@ bool library::returnBook(int bookID, int memberID)
 
 // PUBLIC: add a new book
 void library::addBook(const std::string& title, const std::string& ISBN, const std::string& author,
-                        const std::string& genre)
+                        Genre genre)
 {
     // create book object (issuedTo = 0)
     book b(title, ISBN, author, genre, 0);
     // insert into DB and get assigned ID
     int newId = insertBook(db, b);
+
     if (newId > 0) {
         // force set id on object then push
         b.setID(newId);
@@ -128,7 +137,7 @@ void library::deleteBook(int bookID)
     if (it != books.end()) {
         books.erase(it);
     }
-    
+
     // Delete from database
     ::deleteBook(db, bookID);
 }
@@ -142,7 +151,7 @@ void library::deleteMember(int memberID)
     if (it != members.end()) {
         members.erase(it);
     }
-    
+
     // Delete from database
     ::deleteMember(db, memberID);
 }
@@ -194,7 +203,7 @@ void library::displayBooks() const
                   << ", Title: " << b.getTitle()
                   << ", Author: " << b.getAuthor()
                   << ", ISBN: " << b.getISBN()
-                  << ", Genre: " << b.getGenre()
+                  << ", Genre: " << b.genretoString (b.getGenre())
                   << ", Borrowed: " << (b.getBorrowStatus() ? "Yes" : "No")
                   << std::endl;
     }
@@ -251,12 +260,12 @@ void library::displayBorrowedBooks(int memberID) const
     }
 }
 
-const std::vector<book>& library::getBooks() const 
-{ 
+const std::vector<book>& library::getBooks() const
+{
     return books; // Return the books vector
 }
-const std::vector<member>& library::getMembers() const 
-{ 
+const std::vector<member>& library::getMembers() const
+{
     return members; // Return the members vector
 }
 

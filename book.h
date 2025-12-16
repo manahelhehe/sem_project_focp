@@ -1,7 +1,17 @@
 #pragma once
 
 #include <string>
-
+enum class Genre {
+    fiction,
+    nonfiction,
+    fantasy,
+    mystery,
+    adventure,
+    romance,
+    science,
+    history,
+    unknown
+};
 class book
 {
     private:
@@ -10,7 +20,8 @@ class book
     std::string title;
     std::string ISBN;
     std::string author;
-    std::string genre;
+
+    Genre genre;
 
     bool borrowStatus;
     int issuedTo;
@@ -20,7 +31,7 @@ class book
 
     public:
     // Book Constructor
-    book (const std::string& title, const std::string& ISBN, const std::string& author, const std::string& genre, int issuedTo);
+    book (const std::string& title, const std::string& ISBN, const std::string& author, Genre genre, int issuedTo);
     void setID(int id);
 
     // Data Fetchers:
@@ -28,11 +39,13 @@ class book
     std::string getTitle() const;
     std::string getAuthor() const;
     std::string getISBN() const;
-    std::string getGenre() const;
+    Genre getGenre() const;
     bool getBorrowStatus() const;
     int getIssuedTo() const;
 
     void modifyBorrowStatus(bool status);
     void setIssuedTo(int memberID);
 
+    static Genre stringtoGenre(std::string genreString);
+    static std::string genretoString(Genre genre);
 };

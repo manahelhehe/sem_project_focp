@@ -36,7 +36,7 @@ class library
 
     // Adding Functions: 
 
-    void addBook(const std::string& title, const std::string& ISBN, const std::string& author, const std::string& genre);
+    void addBook(const std::string& title, const std::string& ISBN, const std::string& author, Genre genre);
     void addMember(const std::string& name, const std::string& address, int BorrowedBookID = 0);
 
     // Deleting Functions:
@@ -60,5 +60,8 @@ class library
     const std::vector<member>& getMembers() const;
 
     void clearData();
+    std::string toLower(const std::string& s) const;
+
+    int countBooksByGenreRecursive(Genre genre, size_t index = 0) const;
 
 };
