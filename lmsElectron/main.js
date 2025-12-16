@@ -42,9 +42,9 @@ function initBackend() {
     });
 
     // IPC: Book operations
-    ipcMain.handle('add-book', async (event, title, isbn, author) => {
+    ipcMain.handle('add-book', async (event, title, isbn, author, genre) => {
         // Backend auto-generates ID via SQLite auto-increment
-        return backend.addBook(title, isbn, author);
+        return backend.addBook(title, isbn, author, genre);
     });
 
     ipcMain.handle('get-all-books', async (event) => {

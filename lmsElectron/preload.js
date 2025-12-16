@@ -5,8 +5,8 @@ contextBridge.exposeInMainWorld('api', {
     navigateTo: (page) => ipcRenderer.invoke('navigate', page),
 
     // ✅ Book functions
-    addBook: (title, isbn, author) =>
-        ipcRenderer.invoke('add-book', title, isbn, author),
+    addBook: (title, isbn, author, genre) =>
+        ipcRenderer.invoke('add-book', title, isbn, author, genre),
     
     getAllBooks: () =>
         ipcRenderer.invoke('get-all-books'),

@@ -5,12 +5,30 @@
     <title>LMS Login</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<!-- index.html -->
 <body>
-    <h1>Login</h1>
-    <input type="text" id="username" placeholder="Username"><br>
-    <input type="password" id="password" placeholder="Password"><br>
-    <button id="loginBtn" style="position:relative; z-index:99999;" onclick="(function(){var u=document.getElementById('username'), p=document.getElementById('password'), e=document.getElementById('login-error'); if(!u||!p) return; if(!u.value.trim()||!p.value.trim()){ if(e) e.textContent='Please enter username and password.'; return;} try{ window.location.href='dashboard.html'; }catch(err){ try{ window.location.assign('dashboard.html'); }catch(e2){ try{ window.open('dashboard.html','_self'); }catch(e3){} } } })()">Login</button>
-    <div id="login-error" style="color:red; margin-top:10px;"></div>
+    <div id="login-container" style="max-width: 400px; margin: 50px auto; padding: 30px; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+        <h1 style="text-align: center; color: #333;">Library Management System</h1>
+        <h2 style="text-align: center; color: #666; font-size: 20px; margin-top: 5px;">Login</h2>
+        
+        <div style="margin-bottom: 20px;">
+            <label for="username" style="display: block; margin-bottom: 5px; font-weight: bold;">Username</label>
+            <input type="text" id="username" placeholder="Enter username" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+            <label for="password" style="display: block; margin-bottom: 5px; font-weight: bold;">Password</label>
+            <input type="password" id="password" placeholder="Enter password" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+        </div>
+        
+        <button id="loginBtn" style="width: 100%; padding: 12px; background: #2196F3; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold;">Login</button>
+        
+        <div id="login-error" style="color: red; margin-top: 15px; text-align: center;"></div>
+        
+        <div style="margin-top: 20px; text-align: center;">
+            <a href="signup.html" style="color: #4CAF50; text-decoration: none; font-weight: bold;">Don't have an account? Create one</a>
+        </div>
+    </div>
+
     <script src="renderer.js"></script>
 </body>
+</html>

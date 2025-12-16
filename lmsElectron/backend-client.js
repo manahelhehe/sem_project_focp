@@ -125,8 +125,8 @@ class BackendClient {
         return this.call('listMembers');
     }
 
-    addBook(title, isbn, author) {
-        return this.call('addBook', { title, isbn, author });
+    addBook(title, isbn, author, genre) {
+        return this.call('addBook', { title, isbn, author, genre });
     }
 
     addMember(name, address) {

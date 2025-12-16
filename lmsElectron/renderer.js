@@ -479,19 +479,21 @@ function initAddBookPage() {
         const title = document.getElementById('book-title').value.trim();
         const author = document.getElementById('book-author').value.trim();
         const isbn = document.getElementById('book-isbn').value.trim();
+        const genre = document.getElementById('book-genre').value;
 
-        if (!title || !author || !isbn) {
-            if (msgDiv) { msgDiv.style.color = "red"; msgDiv.textContent = "Please fill in all fields!"; }
+        if (!title || !author || !isbn || !genre) {
+            if (msgDiv) { msgDiv.style.color = "red"; msgDiv.textContent = "Please fill in all fields including genre!"; }
             return;
         }
 
         try {
             // Don't pass ID — backend auto-increments
-            await window.api.addBook(title, isbn, author);
+            await window.api.addBook(title, isbn, author, genre);
             if (msgDiv) { msgDiv.style.color = "green"; msgDiv.textContent = `✅ Book "${title}" added successfully!`; }
             document.getElementById('book-title').value = "";
             document.getElementById('book-author').value = "";
             document.getElementById('book-isbn').value = "";
+            document.getElementById('book-genre').value = "";
         } catch (err) {
             if (msgDiv) { msgDiv.style.color = "red"; msgDiv.textContent = `❌ Error: ${err.message}`; }
         }
@@ -711,7 +713,7 @@ function initViewBooksPage() {
             }
             tbody.innerHTML = "";
             if (!rows || rows.length === 0) {
-                tbody.innerHTML = "<tr><td colspan='5'>No books found.</td></tr>";
+                tbody.innerHTML = "<tr><td colspan='6'>No books found.</td></tr>";
                 if (btn) btn.disabled = false;
                 return;
             }
@@ -719,14 +721,15 @@ function initViewBooksPage() {
             rows.forEach(book => {
                 const tr = document.createElement('tr');
                 const status = book.borrowed ? `Issued to ${book.issuedTo}` : 'Available';
-                tr.innerHTML = `<td>${book.id}</td><td>${book.title}</td><td>${book.author}</td><td>${book.isbn}</td><td>${status}</td>`;
+                const genre = book.genre || 'Unknown';
+                tr.innerHTML = `<td>${book.id}</td><td>${book.title}</td><td>${book.author}</td><td>${book.isbn}</td><td>${genre}</td><td>${status}</td>`;
                 tr.classList.add('table-row-anim');
                 tbody.appendChild(tr);
                 requestAnimationFrame(() => { tr.classList.add('in'); });
             });
             if (btn) btn.disabled = false;
         } catch (err) {
-            tbody.innerHTML = `<tr><td colspan='5'>Error: ${err.message}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan='6'>Error: ${err.message}</td></tr>`;
             const btn = document.getElementById('refresh-books-btn'); if (btn) btn.disabled = false;
         }
     }
@@ -734,10 +737,10 @@ function initViewBooksPage() {
     // initial load
     loadBooks();
 
-    // add sortable headers (assumes columns: ID, Title, Author, ISBN, Status)
+    // add sortable headers (assumes columns: ID, Title, Author, ISBN, Genre, Status)
     const ths = booksTable.querySelectorAll('th');
-    if (ths && ths.length >= 5) {
-        const keyMap = ['id','title','author','isbn','borrowed'];
+    if (ths && ths.length >= 6) {
+        const keyMap = ['id','title','author','isbn','genre','borrowed'];
         let current = { key: null, dir: 'asc' };
         ths.forEach((th, idx) => {
             th.style.cursor = 'pointer';
@@ -1055,10 +1058,12 @@ function initSearchBookPage() {
             results.forEach(b => {
                 const div = document.createElement('div');
                 div.style.cssText = 'border:1px solid #ddd; padding:12px; margin:10px 0; border-radius:5px; background:#f9f9f9;';
+                const genre = b.genre || 'Unknown';
                 div.innerHTML = `
                     <strong>📚 ${b.title}</strong><br>
                     Author: ${b.author}<br>
                     ISBN: ${b.isbn}<br>
+                    Genre: ${genre}<br>
                     <span style="color: ${b.borrowed ? 'red' : 'green'};">${b.borrowed ? '❌ Issued' : '✅ Available'}</span>
                 `;
                 if (resultDiv) resultDiv.appendChild(div);
