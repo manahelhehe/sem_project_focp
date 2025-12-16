@@ -14,6 +14,14 @@ std::string library::toLower(const std::string& s) const
                    [](unsigned char c){ return std::tolower(c); });
     return result;
 }
+
+int library::countBooksByGenreRecursive(Genre genre, size_t index) const {
+    const auto& books = getBooks(); // your existing getter
+    if (index >= books.size()) return 0; // base case: no more books
+    int count = (books[index].getGenre() == genre) ? 1 : 0;
+    return count + countBooksByGenreRecursive(genre, index + 1); // recursive call
+}
+
 // PRIVATE HELPER: find a book by ID
 book* library::findBook(int bookID)
 {

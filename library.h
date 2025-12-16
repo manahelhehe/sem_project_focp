@@ -62,4 +62,6 @@ class library
     void clearData();
     std::string toLower(const std::string& s) const;
 
+    int countBooksByGenreRecursive(Genre genre, size_t index = 0) const;
+
 };

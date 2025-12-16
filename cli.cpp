@@ -300,10 +300,17 @@ int main() {
                     sendError(id, "Missing required field: memberID");
                     continue;
                 }
-                
+
                 lib.deleteMember(memberID);
                 sendResponse(id, true, "{\"message\":\"Member deleted successfully\"}");
             }
+            else if (method == "countBooksByGenre") {
+                std::string genreStr = parser.getString("genre", "");
+                Genre g = book::stringtoGenre(genreStr);
+                int count = lib.countBooksByGenreRecursive(g);
+                sendResponse(id, true, "{\"count\":" + std::to_string(count) + "}");
+            }
+
             else {
                 sendError(id, "Unknown method: " + method);
             }
