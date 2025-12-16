@@ -107,25 +107,51 @@ function closeAllSuggestions() {
 async function resolveBookFromInput(input) {
     if (!input) return null;
     const list = await fetchBooksCached();
-    const q = String(input).trim().toLowerCase();
+    const q = String(input).trim();
+    const qLower = q.toLowerCase();
+    
     // If numeric, try id
     if (/^\d+$/.test(q)) {
         const id = parseInt(q);
-        return list.find(b => b.id === id) || null;
+        const book = list.find(b => b.id === id);
+        if (book) return book;
     }
-    // match title or isbn
-    return list.find(b => (b.title || '').toLowerCase().includes(q) || (b.isbn || '').toLowerCase().includes(q)) || null;
+    
+    // Try exact match first (case-insensitive)
+    let book = list.find(b => 
+        (b.title || '').toLowerCase() === qLower || 
+        (b.isbn || '').toLowerCase() === qLower
+    );
+    if (book) return book;
+    
+    // Try partial match
+    book = list.find(b => 
+        (b.title || '').toLowerCase().includes(qLower) || 
+        (b.isbn || '').toLowerCase().includes(qLower)
+    );
+    return book || null;
 }
 
 async function resolveMemberFromInput(input) {
     if (!input) return null;
     const list = await fetchMembersCached();
-    const q = String(input).trim().toLowerCase();
+    const q = String(input).trim();
+    const qLower = q.toLowerCase();
+    
+    // If numeric, try id
     if (/^\d+$/.test(q)) {
         const id = parseInt(q);
-        return list.find(m => m.id === id) || null;
+        const member = list.find(m => m.id === id);
+        if (member) return member;
     }
-    return list.find(m => (m.name || '').toLowerCase().includes(q)) || null;
+    
+    // Try exact match first (case-insensitive)
+    let member = list.find(m => (m.name || '').toLowerCase() === qLower);
+    if (member) return member;
+    
+    // Try partial match
+    member = list.find(m => (m.name || '').toLowerCase().includes(qLower));
+    return member || null;
 }
 
 // Helper to show errors
@@ -1307,35 +1333,59 @@ function initIssueBookPage() {
     if (!issueBookSubmit) return;
 
     const msgDiv = document.getElementById('issuebook-message');
+    const bookInput = document.getElementById('issue-book-input');
+    const memberInput = document.getElementById('issue-member-input');
 
-        issueBookSubmit.addEventListener('click', async () => {
-            const bookID = parseInt(document.getElementById('issue-book-id').value);
-            const memberID = parseInt(document.getElementById('issue-member-id').value);
+    if (bookInput) setTimeout(() => bookInput.focus(), 100);
 
-            if (!bookID || !memberID) {
-                if (msgDiv) { msgDiv.style.color = "red"; msgDiv.textContent = "Please enter both Book ID and Member ID."; }
+    issueBookSubmit.addEventListener('click', async () => {
+        const bookVal = bookInput.value.trim();
+        const memberVal = memberInput.value.trim();
+
+        if (!bookVal || !memberVal) {
+            if (msgDiv) { msgDiv.style.color = "red"; msgDiv.textContent = "Please enter both book and member information."; }
+            return;
+        }
+
+        try {
+            issueBookSubmit.disabled = true;
+            
+            // Resolve book (by ID or title)
+            const book = await resolveBookFromInput(bookVal);
+            if (!book) {
+                if (msgDiv) { msgDiv.style.color = "red"; msgDiv.textContent = "Book not found: " + bookVal; }
+                issueBookSubmit.disabled = false;
                 return;
             }
 
-            // show modal confirm
-            const ok = await showConfirmModal('Confirm issue', `Issue book ${bookID} to member ${memberID}?`);
-            if (!ok) return;
-
-            try {
-                issueBookSubmit.disabled = true;
-                const res = await window.api.issueBook(bookID, memberID);
-                console.log('[UI] issueBook result ->', res);
-                if (msgDiv) { msgDiv.style.color = "green"; msgDiv.textContent = `✅ Book issued to member successfully.`; }
-                showToast('Book issued');
-                document.getElementById('issue-book-id').value = "";
-                document.getElementById('issue-member-id').value = "";
+            // Resolve member (by ID or name)
+            const member = await resolveMemberFromInput(memberVal);
+            if (!member) {
+                if (msgDiv) { msgDiv.style.color = "red"; msgDiv.textContent = "Member not found: " + memberVal; }
                 issueBookSubmit.disabled = false;
-            } catch (err) {
-                issueBookSubmit.disabled = false;
-                console.error('Issue book error', err);
-                if (msgDiv) { msgDiv.style.color = "red"; msgDiv.textContent = `❌ Error: ${err.message}`; }
-                showToast('Issue failed: ' + err.message, true);
+                return;
             }
+
+            // Show modal confirm
+            const ok = await showConfirmModal('Confirm Issue', `Issue "${book.title}" to ${member.name}?`);
+            if (!ok) {
+                issueBookSubmit.disabled = false;
+                return;
+            }
+
+            const res = await window.api.issueBook(book.id, member.id);
+            console.log('[UI] issueBook result ->', res);
+            if (msgDiv) { msgDiv.style.color = "green"; msgDiv.textContent = `✅ Book "${book.title}" issued to ${member.name} successfully.`; }
+            showToast('Book issued');
+            bookInput.value = "";
+            memberInput.value = "";
+            issueBookSubmit.disabled = false;
+        } catch (err) {
+            issueBookSubmit.disabled = false;
+            console.error('Issue book error', err);
+            if (msgDiv) { msgDiv.style.color = "red"; msgDiv.textContent = `❌ Error: ${err.message}`; }
+            showToast('Issue failed: ' + err.message, true);
+        }
     });
 }
 
@@ -1345,28 +1395,53 @@ function initReturnBookPage() {
     if (!returnBookSubmit) return;
 
     const msgDiv = document.getElementById('returnbook-message');
+    const bookInput = document.getElementById('return-book-input');
+    const memberInput = document.getElementById('return-member-input');
+
+    if (bookInput) setTimeout(() => bookInput.focus(), 100);
 
     returnBookSubmit.addEventListener('click', async () => {
-        const memberID = parseInt(document.getElementById('return-member-id').value);
-        const bookID = parseInt(document.getElementById('return-book-id').value);
+        const bookVal = bookInput.value.trim();
+        const memberVal = memberInput.value.trim();
 
-        if (!memberID || !bookID) {
-            if (msgDiv) { msgDiv.style.color = "red"; msgDiv.textContent = "Please enter Member ID and Book ID."; }
+        if (!bookVal || !memberVal) {
+            if (msgDiv) { msgDiv.style.color = "red"; msgDiv.textContent = "Please enter both book and member information."; }
             return;
         }
-        // confirm with modal
-        const ok = await showConfirmModal('Confirm return', `Return book ${bookID} from member ${memberID}?`);
-        if (!ok) return;
 
         try {
-            console.log('[UI] returnBook ->', { bookID, memberID });
             returnBookSubmit.disabled = true;
-            const res = await window.api.returnBook(bookID, memberID);
+            
+            // Resolve book (by ID or title)
+            const book = await resolveBookFromInput(bookVal);
+            if (!book) {
+                if (msgDiv) { msgDiv.style.color = "red"; msgDiv.textContent = "Book not found: " + bookVal; }
+                returnBookSubmit.disabled = false;
+                return;
+            }
+
+            // Resolve member (by ID or name)
+            const member = await resolveMemberFromInput(memberVal);
+            if (!member) {
+                if (msgDiv) { msgDiv.style.color = "red"; msgDiv.textContent = "Member not found: " + memberVal; }
+                returnBookSubmit.disabled = false;
+                return;
+            }
+
+            // Confirm with modal
+            const ok = await showConfirmModal('Confirm Return', `Return "${book.title}" from ${member.name}?`);
+            if (!ok) {
+                returnBookSubmit.disabled = false;
+                return;
+            }
+
+            console.log('[UI] returnBook ->', { bookID: book.id, memberID: member.id });
+            const res = await window.api.returnBook(book.id, member.id);
             console.log('[UI] returnBook result ->', res);
-            if (msgDiv) { msgDiv.style.color = "green"; msgDiv.textContent = `✅ Book returned successfully.`; }
+            if (msgDiv) { msgDiv.style.color = "green"; msgDiv.textContent = `✅ Book "${book.title}" returned from ${member.name} successfully.`; }
             showToast('Book returned successfully');
-            document.getElementById('return-member-id').value = "";
-            document.getElementById('return-book-id').value = "";
+            bookInput.value = "";
+            memberInput.value = "";
             returnBookSubmit.disabled = false;
         } catch (err) {
             returnBookSubmit.disabled = false;
