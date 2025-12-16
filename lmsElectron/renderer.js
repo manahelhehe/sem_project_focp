@@ -228,6 +228,7 @@ function initDashboardStats() {
 // ---------- PAGE INITIALIZERS ----------
 document.addEventListener('DOMContentLoaded', () => {
     initLoginPage();
+    initSignupPage();
     initDashboard();
     initQuickActions();
     initDashboardStats();
@@ -354,64 +355,139 @@ function initLoginPage() {
     const loginBtn = document.getElementById('loginBtn');
     if (!loginBtn) return;
 
-    const username = document.getElementById('username');
-    const password = document.getElementById('password');
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
     const errorDiv = document.getElementById('login-error');
+    
+    // Auto-focus username input
+    if (usernameInput) setTimeout(() => usernameInput.focus(), 100);
 
-        loginBtn.addEventListener('click', (ev) => {
-            console.log('[UI] login button clicked', { username: username?.value, passwordPresent: !!(password && password.value) });
-            // debug: log element metrics and styles
-            try {
-                const r = loginBtn.getBoundingClientRect();
-                console.log('[UI] loginBtn rect', r, 'computedStyle pointer-events', window.getComputedStyle(loginBtn)['pointer-events']);
-            } catch (e) {}
+    const handleLogin = async () => {
+        const username = usernameInput.value.trim();
+        const password = passwordInput.value.trim();
+        
+        if (!username || !password) {
+            if (errorDiv) errorDiv.textContent = "Please enter username and password.";
+            return;
+        }
 
-            if (!username.value.trim() || !password.value.trim()) {
-                if (errorDiv) errorDiv.textContent = "Please enter username and password.";
-                return;
+        try {
+            loginBtn.disabled = true;
+            const result = await window.api.login(username, password);
+            
+            if (result && result.success) {
+                // Store session
+                sessionStorage.setItem('loggedIn', 'true');
+                sessionStorage.setItem('username', username);
+                // Navigate to dashboard
+                window.location.href = 'dashboard.html';
+            } else {
+                if (errorDiv) errorDiv.textContent = result.error || "Invalid username or password";
+                loginBtn.disabled = false;
             }
+        } catch (err) {
+            console.error('Login error:', err);
+            if (errorDiv) errorDiv.textContent = "Login failed: " + err.message;
+            loginBtn.disabled = false;
+        }
+    };
 
-            // try multiple navigation strategies in case one is blocked
-            try {
-                window.location.href = "dashboard.html";
-            } catch (e) { console.warn('href navigation failed', e); }
-            try {
-                window.location.assign("dashboard.html");
-            } catch (e) { console.warn('assign navigation failed', e); }
-            try {
-                window.open('dashboard.html', '_self');
-            } catch (e) { console.warn('open navigation failed', e); }
-
-            // as a last resort, delay a redirect (some overlays may swallow the immediate change)
-            setTimeout(() => { try { window.location.href = 'dashboard.html'; } catch (e) {} }, 120);
+    loginBtn.addEventListener('click', handleLogin);
+    
+    // Allow Enter key to submit
+    if (passwordInput) {
+        passwordInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') handleLogin();
         });
-
-        // global click logger (debug only) to detect intercepted clicks
-        document.addEventListener('click', (e) => {
-            try {
-                const t = e.target;
-                if (t && t.id === 'loginBtn') console.log('[DEBUG] document click captured on loginBtn (bubble)', t);
-                // also log if any element is covering the button
-                const btn = document.getElementById('loginBtn');
-                if (btn) {
-                    const pt = { x: btn.getBoundingClientRect().left + 2, y: btn.getBoundingClientRect().top + 2 };
-                    const topEl = document.elementFromPoint(pt.x, pt.y);
-                    if (topEl && topEl !== btn) console.log('[DEBUG] elementAt(loginBtn) ->', topEl, 'id:', topEl.id, 'class:', topEl.className);
-                }
-            } catch (e) { }
-        }, true);
+    }
 }
 
-// Ensure login handler attaches even if DOMContentLoaded timing is unexpected
-try { initLoginPage(); } catch (e) { /* ignore */ }
+// ---------- SIGNUP PAGE ----------
+function initSignupPage() {
+    const signupBtn = document.getElementById('signupBtn');
+    if (!signupBtn) return;
+
+    const usernameInput = document.getElementById('signup-username');
+    const passwordInput = document.getElementById('signup-password');
+    const confirmInput = document.getElementById('signup-confirm');
+    const errorDiv = document.getElementById('signup-error');
+    const successDiv = document.getElementById('signup-success');
+    
+    // Auto-focus username input
+    if (usernameInput) setTimeout(() => usernameInput.focus(), 100);
+
+    const handleSignup = async () => {
+        const username = usernameInput.value.trim();
+        const password = passwordInput.value.trim();
+        const confirm = confirmInput.value.trim();
+        
+        if (errorDiv) errorDiv.textContent = '';
+        if (successDiv) successDiv.textContent = '';
+        
+        if (!username || !password || !confirm) {
+            if (errorDiv) errorDiv.textContent = "Please fill in all fields.";
+            return;
+        }
+        
+        if (password !== confirm) {
+            if (errorDiv) errorDiv.textContent = "Passwords do not match.";
+            return;
+        }
+        
+        if (password.length < 4) {
+            if (errorDiv) errorDiv.textContent = "Password must be at least 4 characters.";
+            return;
+        }
+
+        try {
+            signupBtn.disabled = true;
+            const result = await window.api.register(username, password);
+            
+            if (result && result.success) {
+                if (successDiv) successDiv.textContent = "✅ Account created! Redirecting to login...";
+                setTimeout(() => { window.location.href = 'index.html'; }, 1500);
+            } else {
+                if (errorDiv) errorDiv.textContent = result.error || "Registration failed";
+                signupBtn.disabled = false;
+            }
+        } catch (err) {
+            console.error('Signup error:', err);
+            if (errorDiv) errorDiv.textContent = "Registration failed: " + err.message;
+            signupBtn.disabled = false;
+        }
+    };
+
+    signupBtn.addEventListener('click', handleSignup);
+    
+    // Allow Enter key to submit
+    if (confirmInput) {
+        confirmInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') handleSignup();
+        });
+    }
+}
 
 // ---------- DASHBOARD ----------
+// Enhance dashboard: recommendations and logout
 function initDashboard() {
-    // Navigation is now handled by onclick handlers in HTML, no need to do anything here
-}
+    // Display logged-in username
+    const usernameText = document.getElementById('username-text');
+    if (usernameText) {
+        const username = sessionStorage.getItem('username');
+        if (username) {
+            usernameText.textContent = username;
+        }
+    }
 
-// Enhance dashboard: recommendations
-function initDashboard() {
+    // Logout button handler
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            sessionStorage.clear();
+            window.location.href = 'index.html';
+        });
+    }
+
     const recList = document.getElementById('recommendations');
     if (!recList) return;
 
@@ -429,9 +505,27 @@ function initDashboard() {
             const candidates = avail.length ? avail : books;
             const shuffled = candidates.sort(() => 0.5 - Math.random());
             const picks = shuffled.slice(0, Math.min(5, shuffled.length));
+            recList.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; list-style: none; padding: 0;';
             for (const b of picks) {
                 const li = document.createElement('li');
-                li.innerHTML = `<strong>${b.title}</strong> — ${b.author} <span style="color:green;">${b.borrowed? 'Issued':'Available'}</span>`;
+                const coverUrl = b.coverUrl || '';
+                const coverHtml = coverUrl ? 
+                    `<img src="${coverUrl}" alt="${b.title}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px 8px 0 0;">` : 
+                    '<div style="width: 100%; height: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; border-radius: 8px 8px 0 0; color: white; font-size: 48px;">📚</div>';
+                const badge = b.borrowed ? 
+                    '<span style="display: inline-block; padding: 3px 10px; background: #f44336; color: white; border-radius: 12px; font-size: 11px; font-weight: bold;">ISSUED</span>' : 
+                    '<span style="display: inline-block; padding: 3px 10px; background: #4CAF50; color: white; border-radius: 12px; font-size: 11px; font-weight: bold;">AVAILABLE</span>';
+                li.style.cssText = 'background: white; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer;';
+                li.innerHTML = `
+                    ${coverHtml}
+                    <div style="padding: 12px;">
+                        <div style="font-weight: bold; font-size: 14px; margin-bottom: 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${b.title}">${b.title}</div>
+                        <div style="font-size: 12px; color: #666; margin-bottom: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${b.author}">${b.author}</div>
+                        ${badge}
+                    </div>
+                `;
+                li.addEventListener('mouseenter', () => { li.style.transform = 'translateY(-4px)'; li.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)'; });
+                li.addEventListener('mouseleave', () => { li.style.transform = 'translateY(0)'; li.style.boxShadow = 'none'; });
                 recList.appendChild(li);
             }
             // also update recently added area
@@ -474,12 +568,61 @@ function initAddBookPage() {
     if (!addBookSubmit) return;
 
     const msgDiv = document.getElementById('addbook-message');
+    const fetchCoverBtn = document.getElementById('fetch-cover-btn');
+    const coverUrlInput = document.getElementById('book-cover-url');
+    const coverPreview = document.getElementById('cover-preview');
+    
+    // Auto-focus title input for better UX
+    const titleInput = document.getElementById('book-title');
+    if (titleInput) setTimeout(() => titleInput.focus(), 100);
+
+    // Auto-fetch book cover from Google Books API
+    if (fetchCoverBtn) {
+        fetchCoverBtn.addEventListener('click', async () => {
+            const isbn = document.getElementById('book-isbn').value.trim();
+            if (!isbn) {
+                if (msgDiv) { msgDiv.style.color = "red"; msgDiv.textContent = "Enter ISBN first!"; }
+                return;
+            }
+            
+            fetchCoverBtn.disabled = true;
+            fetchCoverBtn.textContent = "Fetching...";
+            
+            try {
+                const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`);
+                const data = await response.json();
+                
+                if (data.items && data.items.length > 0) {
+                    const book = data.items[0].volumeInfo;
+                    const coverUrl = book.imageLinks?.thumbnail || book.imageLinks?.smallThumbnail;
+                    
+                    if (coverUrl) {
+                        // Use HTTPS version of URL
+                        const httpsUrl = coverUrl.replace('http:', 'https:');
+                        coverUrlInput.value = httpsUrl;
+                        coverPreview.innerHTML = `<img src="${httpsUrl}" alt="Book cover" style="max-height: 150px; border: 1px solid #ddd; border-radius: 4px;">`;
+                        if (msgDiv) { msgDiv.style.color = "green"; msgDiv.textContent = "✅ Cover found!"; }
+                    } else {
+                        if (msgDiv) { msgDiv.style.color = "orange"; msgDiv.textContent = "No cover found for this ISBN"; }
+                    }
+                } else {
+                    if (msgDiv) { msgDiv.style.color = "orange"; msgDiv.textContent = "No book found with this ISBN"; }
+                }
+            } catch (err) {
+                if (msgDiv) { msgDiv.style.color = "red"; msgDiv.textContent = `Error fetching cover: ${err.message}`; }
+            } finally {
+                fetchCoverBtn.disabled = false;
+                fetchCoverBtn.textContent = "Auto-fetch Cover from ISBN";
+            }
+        });
+    }
 
     addBookSubmit.addEventListener('click', async () => {
         const title = document.getElementById('book-title').value.trim();
         const author = document.getElementById('book-author').value.trim();
         const isbn = document.getElementById('book-isbn').value.trim();
         const genre = document.getElementById('book-genre').value;
+        const coverUrl = coverUrlInput ? coverUrlInput.value.trim() : '';
 
         if (!title || !author || !isbn || !genre) {
             if (msgDiv) { msgDiv.style.color = "red"; msgDiv.textContent = "Please fill in all fields including genre!"; }
@@ -487,13 +630,15 @@ function initAddBookPage() {
         }
 
         try {
-            // Don't pass ID — backend auto-increments
-            await window.api.addBook(title, isbn, author, genre);
+            // Pass coverUrl to backend (empty string if not provided)
+            await window.api.addBook(title, isbn, author, genre, coverUrl);
             if (msgDiv) { msgDiv.style.color = "green"; msgDiv.textContent = `✅ Book "${title}" added successfully!`; }
             document.getElementById('book-title').value = "";
             document.getElementById('book-author').value = "";
             document.getElementById('book-isbn').value = "";
             document.getElementById('book-genre').value = "";
+            if (coverUrlInput) coverUrlInput.value = "";
+            if (coverPreview) coverPreview.innerHTML = "";
         } catch (err) {
             if (msgDiv) { msgDiv.style.color = "red"; msgDiv.textContent = `❌ Error: ${err.message}`; }
         }
@@ -506,6 +651,10 @@ function initAddMemberPage() {
     if (!addMemberSubmit) return;
 
     const msgDiv = document.getElementById('addmember-message');
+    
+    // Auto-focus name input for better UX
+    const nameInput = document.getElementById('member-name');
+    if (nameInput) setTimeout(() => nameInput.focus(), 100);
 
     addMemberSubmit.addEventListener('click', async () => {
         const name = document.getElementById('member-name').value.trim();
@@ -713,23 +862,29 @@ function initViewBooksPage() {
             }
             tbody.innerHTML = "";
             if (!rows || rows.length === 0) {
-                tbody.innerHTML = "<tr><td colspan='6'>No books found.</td></tr>";
+                tbody.innerHTML = "<tr><td colspan='8'>No books found.</td></tr>";
                 if (btn) btn.disabled = false;
                 return;
             }
 
             rows.forEach(book => {
                 const tr = document.createElement('tr');
-                const status = book.borrowed ? `Issued to ${book.issuedTo}` : 'Available';
+                const statusBadge = book.borrowed ? 
+                    `<span style="display: inline-block; padding: 4px 12px; background: #f44336; color: white; border-radius: 12px; font-size: 11px; font-weight: bold;">ISSUED TO ${book.issuedTo}</span>` : 
+                    '<span style="display: inline-block; padding: 4px 12px; background: #4CAF50; color: white; border-radius: 12px; font-size: 11px; font-weight: bold;">AVAILABLE</span>';
                 const genre = book.genre || 'Unknown';
-                tr.innerHTML = `<td>${book.id}</td><td>${book.title}</td><td>${book.author}</td><td>${book.isbn}</td><td>${genre}</td><td>${status}</td>`;
+                const coverUrl = book.coverUrl || '';
+                const coverHtml = coverUrl ? 
+                    `<img src="${coverUrl}" alt="Cover" style="max-width: 50px; max-height: 70px; object-fit: cover; border-radius: 3px;">` : 
+                    '<span style="color: #999;">No cover</span>';
+                tr.innerHTML = `<td style="text-align: center;">${coverHtml}</td><td>${book.id}</td><td>${book.title}</td><td>${book.author}</td><td>${book.isbn}</td><td>${genre}</td><td>${statusBadge}</td>`;
                 tr.classList.add('table-row-anim');
                 tbody.appendChild(tr);
                 requestAnimationFrame(() => { tr.classList.add('in'); });
             });
             if (btn) btn.disabled = false;
         } catch (err) {
-            tbody.innerHTML = `<tr><td colspan='6'>Error: ${err.message}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan='8'>Error: ${err.message}</td></tr>`;
             const btn = document.getElementById('refresh-books-btn'); if (btn) btn.disabled = false;
         }
     }
@@ -737,33 +892,21 @@ function initViewBooksPage() {
     // initial load
     loadBooks();
 
-    // add sortable headers (assumes columns: ID, Title, Author, ISBN, Genre, Status)
+    // add sortable headers (assumes columns: Cover, ID, Title, Author, ISBN, Genre, Status)
     const ths = booksTable.querySelectorAll('th');
-    if (ths && ths.length >= 6) {
-        const keyMap = ['id','title','author','isbn','genre','borrowed'];
+    if (ths && ths.length >= 7) {
+        const keyMap = [null,'id','title','author','isbn','genre','borrowed']; // null for Cover column
         let current = { key: null, dir: 'asc' };
         ths.forEach((th, idx) => {
+            const key = keyMap[idx];
+            if (!key) return; // skip Cover column
             th.style.cursor = 'pointer';
             const indicator = document.createElement('span'); indicator.className = 'sort-ind'; th.appendChild(indicator);
             th.addEventListener('click', () => {
-                const key = keyMap[idx] || null;
-                if (!key) return;
                 if (current.key === key) current.dir = current.dir === 'asc' ? 'desc' : 'asc'; else { current.key = key; current.dir = 'asc'; }
                 // update indicators
                 ths.forEach((h,i) => { const si = h.querySelector('.sort-ind'); if (si) si.textContent = (i===idx? (current.dir==='asc'?'▲':'▼') : ''); });
-                // special handling for borrowed -> sort by boolean
-                if (key === 'borrowed') {
-                    const list = (books || []).slice();
-                    list.sort((a,b) => {
-                        const va = a.borrowed ? 1 : 0; const vb = b.borrowed ? 1:0;
-                        return current.dir==='asc' ? va - vb : vb - va;
-                    });
-                    // render directly
-                    tbody.innerHTML = '';
-                    list.forEach(book => { const tr = document.createElement('tr'); const status = book.borrowed ? `Issued to ${book.issuedTo}` : 'Available'; tr.innerHTML = `<td>${book.id}</td><td>${book.title}</td><td>${book.author}</td><td>${book.isbn}</td><td>${status}</td>`; tbody.appendChild(tr); });
-                } else {
-                    loadBooks(key, current.dir);
-                }
+                loadBooks(key, current.dir);
             });
         });
     }
@@ -1057,15 +1200,27 @@ function initSearchBookPage() {
             
             results.forEach(b => {
                 const div = document.createElement('div');
-                div.style.cssText = 'border:1px solid #ddd; padding:12px; margin:10px 0; border-radius:5px; background:#f9f9f9;';
+                div.style.cssText = 'border:1px solid #ddd; padding:12px; margin:10px 0; border-radius:5px; background:#f9f9f9; display: flex; gap: 15px; transition: transform 0.2s, box-shadow 0.2s;';
                 const genre = b.genre || 'Unknown';
+                const coverUrl = b.coverUrl || '';
+                const coverHtml = coverUrl ? 
+                    `<img src="${coverUrl}" alt="Cover" style="width: 80px; height: 110px; object-fit: cover; border-radius: 4px; border: 1px solid #ccc;">` : 
+                    '<div style="width: 80px; height: 110px; background: #e0e0e0; display: flex; align-items: center; justify-content: center; border-radius: 4px; color: #999; font-size: 12px;">No cover</div>';
+                const statusBadge = b.borrowed ? 
+                    '<span style="display: inline-block; padding: 4px 12px; background: #f44336; color: white; border-radius: 12px; font-size: 11px; font-weight: bold; margin-top: 5px;">❌ ISSUED</span>' : 
+                    '<span style="display: inline-block; padding: 4px 12px; background: #4CAF50; color: white; border-radius: 12px; font-size: 11px; font-weight: bold; margin-top: 5px;">✅ AVAILABLE</span>';
                 div.innerHTML = `
-                    <strong>📚 ${b.title}</strong><br>
-                    Author: ${b.author}<br>
-                    ISBN: ${b.isbn}<br>
-                    Genre: ${genre}<br>
-                    <span style="color: ${b.borrowed ? 'red' : 'green'};">${b.borrowed ? '❌ Issued' : '✅ Available'}</span>
+                    ${coverHtml}
+                    <div style="flex: 1;">
+                        <strong>📚 ${b.title}</strong><br>
+                        Author: ${b.author}<br>
+                        ISBN: ${b.isbn}<br>
+                        Genre: ${genre}<br>
+                        ${statusBadge}
+                    </div>
                 `;
+                div.addEventListener('mouseenter', () => { div.style.transform = 'translateY(-2px)'; div.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)'; });
+                div.addEventListener('mouseleave', () => { div.style.transform = 'translateY(0)'; div.style.boxShadow = 'none'; });
                 if (resultDiv) resultDiv.appendChild(div);
             });
         } catch (err) {

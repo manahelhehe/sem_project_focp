@@ -22,6 +22,7 @@ class book
     std::string author;
 
     Genre genre;
+    std::string cover_url;
 
     bool borrowStatus;
     int issuedTo;
@@ -40,11 +41,13 @@ class book
     std::string getAuthor() const;
     std::string getISBN() const;
     Genre getGenre() const;
+    std::string getCoverUrl() const;
     bool getBorrowStatus() const;
     int getIssuedTo() const;
 
     void modifyBorrowStatus(bool status);
     void setIssuedTo(int memberID);
+    void setCoverUrl(const std::string& url);
 
     static Genre stringtoGenre(std::string genreString);
     static std::string genretoString(Genre genre);

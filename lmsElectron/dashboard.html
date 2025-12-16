@@ -8,8 +8,14 @@
 <body>
     <div id="dashboard-container">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h1 style="margin: 0;">Library Management System Dashboard</h1>
-            <button id="logout-btn" style="padding: 8px 20px; background: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Logout</button>
+            <h1 style="margin: 0;">BookChive Home</h1>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div id="user-display" style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: #f0f0f0; border-radius: 20px; font-size: 14px;">
+                    <span style="font-size: 20px;">👤</span>
+                    <span id="username-text" style="font-weight: 600; color: #333;"></span>
+                </div>
+                <button id="logout-btn" style="padding: 8px 20px; background: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Logout</button>
+            </div>
         </div>
 
         <div id="dashboard-stats" style="margin:12px 0; padding:10px; border:1px solid #ddd; border-radius:6px; background:#fafafa;">

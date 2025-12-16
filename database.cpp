@@ -13,6 +13,7 @@ void createBooksTable(sqlite3* db)
         "author TEXT NOT NULL, "
         "ISBN TEXT NOT NULL, "
         "genre TEXT NOT NULL, "
+        "cover_url TEXT, "
         "borrowStatus INTEGER NOT NULL DEFAULT 0, "
         "issuedTo INTEGER NOT NULL DEFAULT 0"
         ");";
@@ -61,8 +62,8 @@ void openDatabase(sqlite3* &db, const std::string& dbPath) {
 int insertBook(sqlite3* db, const book& b) {
 
     const char* sql =
-        "INSERT INTO books (title, author, ISBN, genre) "
-        "VALUES (?, ?, ?, ?);";
+        "INSERT INTO books (title, author, ISBN, genre, cover_url) "
+        "VALUES (?, ?, ?, ?, ?);";
 
     sqlite3_stmt* stmt = nullptr;
 
@@ -72,6 +73,7 @@ int insertBook(sqlite3* db, const book& b) {
     sqlite3_bind_text(stmt, 2, b.getAuthor().c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(stmt, 3, b.getISBN().c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(stmt, 4, book::genretoString(b.getGenre()).c_str(), -1 , SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 5, b.getCoverUrl().c_str(), -1, SQLITE_TRANSIENT);
 
     if (sqlite3_step(stmt) != SQLITE_DONE)
     {
@@ -146,7 +148,7 @@ void updateBookStatus(sqlite3* db, const book& b) {
 }
 
 void loadBooks(sqlite3* db, std::vector<book>& books) {
-    const char* sql = "SELECT id, title, author, ISBN, genre, borrowStatus, issuedTo FROM books;";
+    const char* sql = "SELECT id, title, author, ISBN, genre, cover_url, borrowStatus, issuedTo FROM books;";
 
     sqlite3_stmt* stmt = nullptr;
     sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
@@ -158,13 +160,16 @@ void loadBooks(sqlite3* db, std::vector<book>& books) {
         std::string author = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
         std::string isbn = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
         std::string genreStr = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4));
-        int borrowStatus = sqlite3_column_int(stmt, 5);
-        int issuedTo = sqlite3_column_int(stmt, 6);
+        const char* coverUrlPtr = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 5));
+        std::string coverUrl = coverUrlPtr ? coverUrlPtr : "";
+        int borrowStatus = sqlite3_column_int(stmt, 6);
+        int issuedTo = sqlite3_column_int(stmt, 7);
 
         Genre genre = book::stringtoGenre(genreStr);
 
         book b(title, isbn, author, genre, issuedTo);
         b.modifyBorrowStatus(borrowStatus == 1);
+        b.setCoverUrl(coverUrl);
 
         // Force restore ID
         b.setID(id);// sets private ID directly
@@ -224,6 +229,82 @@ void deleteMember(sqlite3* db, int memberID) {
     }
     
     sqlite3_finalize(stmt);
+}
+
+// User authentication functions
+void createUsersTable(sqlite3* db) {
+    const char* sql = "CREATE TABLE IF NOT EXISTS users ("
+                      "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                      "username TEXT UNIQUE NOT NULL,"
+                      "passwordHash TEXT NOT NULL);";
+    char* errMsg = nullptr;
+    int rc = sqlite3_exec(db, sql, nullptr, nullptr, &errMsg);
+    if (rc != SQLITE_OK) {
+        std::cerr << "Failed to create users table: " << errMsg << std::endl;
+        sqlite3_free(errMsg);
+    }
+}
+
+bool insertUser(sqlite3* db, const std::string& username, const std::string& password) {
+    // Simple password hashing (in production, use bcrypt or similar)
+    std::string passwordHash = password; // For now, just store as-is (upgrade to proper hashing later)
+    
+    const char* sql = "INSERT INTO users (username, passwordHash) VALUES (?, ?);";
+    sqlite3_stmt* stmt = nullptr;
+    
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK) {
+        std::cerr << "Failed to prepare insert user statement.\n";
+        return false;
+    }
+    
+    sqlite3_bind_text(stmt, 1, username.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 2, passwordHash.c_str(), -1, SQLITE_TRANSIENT);
+    
+    bool success = (sqlite3_step(stmt) == SQLITE_DONE);
+    sqlite3_finalize(stmt);
+    
+    return success;
+}
+
+bool authenticateUser(sqlite3* db, const std::string& username, const std::string& password) {
+    const char* sql = "SELECT passwordHash FROM users WHERE username = ?;";
+    sqlite3_stmt* stmt = nullptr;
+    
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK) {
+        return false;
+    }
+    
+    sqlite3_bind_text(stmt, 1, username.c_str(), -1, SQLITE_TRANSIENT);
+    
+    bool authenticated = false;
+    if (sqlite3_step(stmt) == SQLITE_ROW) {
+        const char* storedHash = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+        if (storedHash && password == storedHash) {
+            authenticated = true;
+        }
+    }
+    
+    sqlite3_finalize(stmt);
+    return authenticated;
+}
+
+bool userExists(sqlite3* db, const std::string& username) {
+    const char* sql = "SELECT COUNT(*) FROM users WHERE username = ?;";
+    sqlite3_stmt* stmt = nullptr;
+    
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK) {
+        return false;
+    }
+    
+    sqlite3_bind_text(stmt, 1, username.c_str(), -1, SQLITE_TRANSIENT);
+    
+    bool exists = false;
+    if (sqlite3_step(stmt) == SQLITE_ROW) {
+        exists = (sqlite3_column_int(stmt, 0) > 0);
+    }
+    
+    sqlite3_finalize(stmt);
+    return exists;
 }
 
 void closeDatabase(sqlite3* db) {

@@ -103,10 +103,11 @@ bool library::returnBook(int bookID, int memberID)
 
 // PUBLIC: add a new book
 void library::addBook(const std::string& title, const std::string& ISBN, const std::string& author,
-                        Genre genre)
+                        Genre genre, const std::string& coverUrl)
 {
     // create book object (issuedTo = 0)
     book b(title, ISBN, author, genre, 0);
+    b.setCoverUrl(coverUrl);
     // insert into DB and get assigned ID
     int newId = insertBook(db, b);
 
@@ -145,6 +146,14 @@ void library::deleteBook(int bookID)
 // PUBLIC: delete a member
 void library::deleteMember(int memberID)
 {
+    // First, return all books borrowed by this member
+    for (auto& b : books) {
+        if (b.getIssuedTo() == memberID) {
+            b.setIssuedTo(0);  // Return the book
+            updateBookStatus(db, b);  // Update in database
+        }
+    }
+
     // Remove from in-memory vector
     auto it = std::find_if(members.begin(), members.end(),
                           [memberID](const member& m) { return m.getID() == memberID; });
@@ -280,6 +289,7 @@ library::library() {
     openDatabase(db, DB_PATH);
     createBooksTable(db);
     createMembersTable(db);
+    createUsersTable(db);
     loadBooks(db, books);
     loadMembers(db, members);
 }

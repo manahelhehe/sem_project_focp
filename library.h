@@ -36,7 +36,7 @@ class library
 
     // Adding Functions: 
 
-    void addBook(const std::string& title, const std::string& ISBN, const std::string& author, Genre genre);
+    void addBook(const std::string& title, const std::string& ISBN, const std::string& author, Genre genre, const std::string& coverUrl = "");
     void addMember(const std::string& name, const std::string& address, int BorrowedBookID = 0);
 
     // Deleting Functions:
@@ -58,6 +58,7 @@ class library
 
     const std::vector<book>& getBooks() const;
     const std::vector<member>& getMembers() const;
+    sqlite3* getDb() const { return db; }
 
     void clearData();
     std::string toLower(const std::string& s) const;

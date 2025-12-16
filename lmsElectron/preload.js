@@ -5,8 +5,8 @@ contextBridge.exposeInMainWorld('api', {
     navigateTo: (page) => ipcRenderer.invoke('navigate', page),
 
     // ✅ Book functions
-    addBook: (title, isbn, author, genre) =>
-        ipcRenderer.invoke('add-book', title, isbn, author, genre),
+    addBook: (title, isbn, author, genre, coverUrl = '') =>
+        ipcRenderer.invoke('add-book', title, isbn, author, genre, coverUrl),
     
     getAllBooks: () =>
         ipcRenderer.invoke('get-all-books'),
@@ -39,6 +39,13 @@ contextBridge.exposeInMainWorld('api', {
     
     // Recommendations (frontend can also compute, but expose via backend if needed)
     getRecommendations: () =>
-        ipcRenderer.invoke('get-recommendations')
+        ipcRenderer.invoke('get-recommendations'),
+    
+    // ✅ Authentication functions
+    login: (username, password) =>
+        ipcRenderer.invoke('login', username, password),
+    
+    register: (username, password) =>
+        ipcRenderer.invoke('register', username, password)
 });
 

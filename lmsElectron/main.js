@@ -42,9 +42,9 @@ function initBackend() {
     });
 
     // IPC: Book operations
-    ipcMain.handle('add-book', async (event, title, isbn, author, genre) => {
+    ipcMain.handle('add-book', async (event, title, isbn, author, genre, coverUrl = '') => {
         // Backend auto-generates ID via SQLite auto-increment
-        return backend.addBook(title, isbn, author, genre);
+        return backend.addBook(title, isbn, author, genre, coverUrl);
     });
 
     ipcMain.handle('get-all-books', async (event) => {
@@ -107,6 +107,15 @@ function initBackend() {
             console.error('get-recommendations error', err);
             return [];
         }
+    });
+
+    // IPC: Authentication
+    ipcMain.handle('login', async (event, username, password) => {
+        return backend.call('login', { username, password });
+    });
+
+    ipcMain.handle('register', async (event, username, password) => {
+        return backend.call('register', { username, password });
     });
 }
 

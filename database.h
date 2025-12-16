@@ -30,4 +30,10 @@ void deleteBook(sqlite3* db, int bookID);
 
 void deleteMember(sqlite3* db, int memberID);
 
+// User authentication functions
+void createUsersTable(sqlite3* db);
+bool insertUser(sqlite3* db, const std::string& username, const std::string& password);
+bool authenticateUser(sqlite3* db, const std::string& username, const std::string& password);
+bool userExists(sqlite3* db, const std::string& username);
+
 void closeDatabase(sqlite3* db);

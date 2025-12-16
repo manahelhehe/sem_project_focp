@@ -20,7 +20,9 @@ class BackendClient {
     }
 
     initProcess() {
-        this.process = spawn(this.exePath);
+        // Set working directory to build/bin where the database should be
+        const workingDir = path.dirname(this.exePath);
+        this.process = spawn(this.exePath, [], { cwd: workingDir });
         this.isReady = true;
 
         // Handle stdout (responses from backend)
@@ -125,8 +127,8 @@ class BackendClient {
         return this.call('listMembers');
     }
 
-    addBook(title, isbn, author, genre) {
-        return this.call('addBook', { title, isbn, author, genre });
+    addBook(title, isbn, author, genre, coverUrl = '') {
+        return this.call('addBook', { title, isbn, author, genre, coverUrl });
     }
 
     addMember(name, address) {

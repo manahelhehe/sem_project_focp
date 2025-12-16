@@ -80,6 +80,16 @@ Genre book::getGenre() const
     return this-> genre;
 }
 
+std::string book::getCoverUrl() const
+{
+    return this->cover_url;
+}
+
+void book::setCoverUrl(const std::string& url)
+{
+    this->cover_url = url;
+}
+
 bool book::getBorrowStatus() const
 {
     return this->borrowStatus;

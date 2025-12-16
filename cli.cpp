@@ -5,6 +5,7 @@
 #include <vector>
 #include <cstring>
 #include "library.h"
+#include "database.h"
 
 // Minimal JSON builder (no external dependency)
 class JSON {
@@ -123,6 +124,8 @@ int main() {
                        << ",\"title\":\"" << JSON::escape(b.getTitle()) << "\""
                        << ",\"author\":\"" << JSON::escape(b.getAuthor()) << "\""
                        << ",\"isbn\":\"" << JSON::escape(b.getISBN()) << "\""
+                       << ",\"genre\":\"" << JSON::escape(book::genretoString(b.getGenre())) << "\""
+                       << ",\"coverUrl\":\"" << JSON::escape(b.getCoverUrl()) << "\""
                        << ",\"borrowed\":" << (b.getBorrowStatus() ? "true" : "false")
                        << ",\"issuedTo\":" << b.getIssuedTo()
                        << "}";
@@ -154,6 +157,7 @@ int main() {
                 std::string isbn = parser.getString("isbn", "");
                 std::string author = parser.getString("author", "");
                 std::string genre = parser.getString("genre", "");
+                std::string coverUrl = parser.getString("coverUrl", "");
                 
                 if (title.empty() || isbn.empty() || author.empty()) {
                     sendError(id, "Missing required fields: title, isbn, author, genre");
@@ -161,7 +165,7 @@ int main() {
                 }
                 Genre g = book::stringtoGenre(genre); // converts std::string to Genre
 
-                lib.addBook(title, isbn, author, g);
+                lib.addBook(title, isbn, author, g, coverUrl);
                 sendResponse(id, true, "{\"message\":\"Book added successfully\"}");
             }
             else if (method == "addMember") {
@@ -226,6 +230,8 @@ int main() {
                        << ",\"title\":\"" << JSON::escape(b->getTitle()) << "\""
                        << ",\"author\":\"" << JSON::escape(b->getAuthor()) << "\""
                        << ",\"isbn\":\"" << JSON::escape(b->getISBN()) << "\""
+                       << ",\"genre\":\"" << JSON::escape(book::genretoString(b->getGenre())) << "\""
+                       << ",\"coverUrl\":\"" << JSON::escape(b->getCoverUrl()) << "\""
                        << ",\"borrowed\":" << (b->getBorrowStatus() ? "true" : "false")
                        << "}";
                     first = false;
@@ -309,6 +315,43 @@ int main() {
                 Genre g = book::stringtoGenre(genreStr);
                 int count = lib.countBooksByGenreRecursive(g);
                 sendResponse(id, true, "{\"count\":" + std::to_string(count) + "}");
+            }
+            else if (method == "register") {
+                std::string username = parser.getString("username", "");
+                std::string password = parser.getString("password", "");
+                
+                if (username.empty() || password.empty()) {
+                    sendError(id, "Username and password are required");
+                    continue;
+                }
+                
+                // Check if user already exists
+                if (userExists(lib.getDb(), username)) {
+                    sendResponse(id, false, "{\"error\":\"Username already exists\"}");
+                } else {
+                    // Insert new user
+                    if (insertUser(lib.getDb(), username, password)) {
+                        sendResponse(id, true, "{\"success\":true,\"message\":\"Account created successfully\"}");
+                    } else {
+                        sendError(id, "Failed to create account");
+                    }
+                }
+            }
+            else if (method == "login") {
+                std::string username = parser.getString("username", "");
+                std::string password = parser.getString("password", "");
+                
+                if (username.empty() || password.empty()) {
+                    sendError(id, "Username and password are required");
+                    continue;
+                }
+                
+                // Authenticate user
+                if (authenticateUser(lib.getDb(), username, password)) {
+                    sendResponse(id, true, "{\"success\":true,\"message\":\"Login successful\",\"username\":\"" + JSON::escape(username) + "\"}");
+                } else {
+                    sendResponse(id, false, "{\"error\":\"Invalid username or password\"}");
+                }
             }
 
             else {
