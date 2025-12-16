@@ -10,8 +10,9 @@ class book
     std::string title;
     std::string ISBN;
     std::string author;
-    bool borrowStatus;
+    std::string genre;
 
+    bool borrowStatus;
     int issuedTo;
     
     // For auto-assigning book IDs (?)
@@ -19,7 +20,7 @@ class book
 
     public:
     // Book Constructor
-    book (const std::string& title, const std::string& ISBN, const std::string& author, int issuedTo);
+    book (const std::string& title, const std::string& ISBN, const std::string& author, const std::string& genre, int issuedTo);
     void setID(int id);
 
     // Data Fetchers:
@@ -27,6 +28,7 @@ class book
     std::string getTitle() const;
     std::string getAuthor() const;
     std::string getISBN() const;
+    std::string getGenre() const;
     bool getBorrowStatus() const;
     int getIssuedTo() const;
 

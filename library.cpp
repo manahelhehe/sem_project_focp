@@ -94,10 +94,11 @@ bool library::returnBook(int bookID, int memberID)
 }
 
 // PUBLIC: add a new book
-void library::addBook(const std::string& title, const std::string& ISBN, const std::string& author)
+void library::addBook(const std::string& title, const std::string& ISBN, const std::string& author,
+                        const std::string& genre)
 {
     // create book object (issuedTo = 0)
-    book b(title, ISBN, author, 0);
+    book b(title, ISBN, author, genre, 0);
     // insert into DB and get assigned ID
     int newId = insertBook(db, b);
     if (newId > 0) {
@@ -163,7 +164,6 @@ std::vector<const book*> library::searchBook(const std::string& query) const
             results.push_back(&b);
         }
     }
-
     return results;
 }
 
@@ -194,6 +194,7 @@ void library::displayBooks() const
                   << ", Title: " << b.getTitle()
                   << ", Author: " << b.getAuthor()
                   << ", ISBN: " << b.getISBN()
+                  << ", Genre: " << b.getGenre()
                   << ", Borrowed: " << (b.getBorrowStatus() ? "Yes" : "No")
                   << std::endl;
     }

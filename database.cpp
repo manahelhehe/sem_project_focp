@@ -12,8 +12,9 @@ void createBooksTable(sqlite3* db)
         "title TEXT NOT NULL, "
         "author TEXT NOT NULL, "
         "ISBN TEXT NOT NULL, "
-        "borrowStatus INTEGER NOT NULL, "
-        "issuedTo INTEGER NOT NULL"
+        "genre TEXT NOT NULL, "
+        "borrowStatus INTEGER NOT NULL DEFAULT 0, "
+        "issuedTo INTEGER NOT NULL DEFAULT 0"
         ");";
 
     char* errMsg = nullptr;
@@ -60,8 +61,8 @@ void openDatabase(sqlite3* &db, const std::string& dbPath) {
 int insertBook(sqlite3* db, const book& b) {
 
     const char* sql =
-        "INSERT INTO books (title, author, ISBN, borrowStatus, issuedTo) "
-        "VALUES (?, ?, ?, ?, ?);";
+        "INSERT INTO books (title, author, ISBN) "
+        "VALUES (?, ?, ?);";
 
     sqlite3_stmt* stmt = nullptr;
 
@@ -70,8 +71,6 @@ int insertBook(sqlite3* db, const book& b) {
     sqlite3_bind_text(stmt, 1, b.getTitle().c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(stmt, 2, b.getAuthor().c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(stmt, 3, b.getISBN().c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_int(stmt, 4, b.getBorrowStatus() ? 1 : 0);   // borrowStatus
-    sqlite3_bind_int(stmt, 5, b.getIssuedTo());               // issuedTo
 
     if (sqlite3_step(stmt) != SQLITE_DONE)
     {
@@ -157,10 +156,11 @@ void loadBooks(sqlite3* db, std::vector<book>& books) {
         std::string title = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
         std::string author = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
         std::string isbn = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
+        std::string genre = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4));
         int borrowStatus = sqlite3_column_int(stmt, 4);
         int issuedTo = sqlite3_column_int(stmt, 5);
 
-        book b(title, isbn, author, issuedTo);
+        book b(title, isbn, author, genre, issuedTo);
         b.modifyBorrowStatus(borrowStatus == 1);
 
         // Force restore ID

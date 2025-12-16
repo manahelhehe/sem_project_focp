@@ -36,7 +36,7 @@ class library
 
     // Adding Functions: 
 
-    void addBook(const std::string& title, const std::string& ISBN, const std::string& author);
+    void addBook(const std::string& title, const std::string& ISBN, const std::string& author, const std::string& genre);
     void addMember(const std::string& name, const std::string& address, int BorrowedBookID = 0);
 
     // Deleting Functions:

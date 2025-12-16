@@ -152,13 +152,14 @@ int main() {
                 std::string title = parser.getString("title", "");
                 std::string isbn = parser.getString("isbn", "");
                 std::string author = parser.getString("author", "");
+                std::string genre = parser.getString("genre", "");
                 
                 if (title.empty() || isbn.empty() || author.empty()) {
-                    sendError(id, "Missing required fields: title, isbn, author");
+                    sendError(id, "Missing required fields: title, isbn, author, genre");
                     continue;
                 }
                 
-                lib.addBook(title, isbn, author);
+                lib.addBook(title, isbn, author, genre);
                 sendResponse(id, true, "{\"message\":\"Book added successfully\"}");
             }
             else if (method == "addMember") {
