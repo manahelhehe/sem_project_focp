@@ -422,7 +422,7 @@ CREATE TABLE users (
 ## 👨‍💻 Author
 
 **Your Name**
-- GitHub: [@yourusername](https://github.com/yourusername)
+- GitHub: [@manahelhehe](https://github.com/manahelhehe)
 - Project: Library Management System (Fundamentals of Computer Programming Semester Project)
 
 ---
