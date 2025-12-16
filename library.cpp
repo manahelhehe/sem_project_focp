@@ -270,6 +270,7 @@ library::library() {
     openDatabase(db, DB_PATH);
     createBooksTable(db);
     createMembersTable(db);
+    createUsersTable(db);
     loadBooks(db, books);
     loadMembers(db, members);
 }

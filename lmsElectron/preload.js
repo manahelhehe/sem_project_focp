@@ -4,6 +4,13 @@ contextBridge.exposeInMainWorld('api', {
     // ✅ Navigation function (using invoke for consistency)
     navigateTo: (page) => ipcRenderer.invoke('navigate', page),
 
+    // ✅ Authentication functions
+    login: (username, password) =>
+        ipcRenderer.invoke('login', username, password),
+    
+    register: (username, password) =>
+        ipcRenderer.invoke('register', username, password),
+
     // ✅ Book functions
     addBook: (title, isbn, author) =>
         ipcRenderer.invoke('add-book', title, isbn, author),

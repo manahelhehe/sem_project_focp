@@ -41,6 +41,15 @@ function initBackend() {
         return page;
     });
 
+    // IPC: Authentication
+    ipcMain.handle('login', async (event, username, password) => {
+        return backend.call('login', { username, password });
+    });
+
+    ipcMain.handle('register', async (event, username, password) => {
+        return backend.call('register', { username, password });
+    });
+
     // IPC: Book operations
     ipcMain.handle('add-book', async (event, title, isbn, author) => {
         // Backend auto-generates ID via SQLite auto-increment

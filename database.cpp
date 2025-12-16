@@ -222,6 +222,68 @@ void deleteMember(sqlite3* db, int memberID) {
     sqlite3_finalize(stmt);
 }
 
+void createUsersTable(sqlite3* db) {
+    const char* sql =
+        "CREATE TABLE IF NOT EXISTS users ("
+        "id INTEGER PRIMARY KEY, "
+        "username TEXT UNIQUE NOT NULL, "
+        "passwordHash TEXT NOT NULL"
+        ");";
+
+    char* errMsg = nullptr;
+    int rc = sqlite3_exec(db, sql, nullptr, nullptr, &errMsg);
+
+    if (rc != SQLITE_OK) {
+        std::cerr << "Error creating users table: " << errMsg << std::endl;
+        sqlite3_free(errMsg);
+    }
+}
+
+int insertUser(sqlite3* db, const std::string& username, const std::string& passwordHash) {
+    const char* sql = "INSERT INTO users (username, passwordHash) VALUES (?, ?);";
+    sqlite3_stmt* stmt = nullptr;
+    
+    sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+    sqlite3_bind_text(stmt, 1, username.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 2, passwordHash.c_str(), -1, SQLITE_TRANSIENT);
+    
+    if (sqlite3_step(stmt) != SQLITE_DONE) {
+        std::cerr << "Failed to insert user.\n";
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+    
+    sqlite3_finalize(stmt);
+    return (int)sqlite3_last_insert_rowid(db);
+}
+
+bool authenticateUser(sqlite3* db, const std::string& username, const std::string& passwordHash) {
+    const char* sql = "SELECT id FROM users WHERE username = ? AND passwordHash = ?;";
+    sqlite3_stmt* stmt = nullptr;
+    
+    sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+    sqlite3_bind_text(stmt, 1, username.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 2, passwordHash.c_str(), -1, SQLITE_TRANSIENT);
+    
+    bool found = (sqlite3_step(stmt) == SQLITE_ROW);
+    sqlite3_finalize(stmt);
+    
+    return found;
+}
+
+bool userExists(sqlite3* db, const std::string& username) {
+    const char* sql = "SELECT id FROM users WHERE username = ?;";
+    sqlite3_stmt* stmt = nullptr;
+    
+    sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+    sqlite3_bind_text(stmt, 1, username.c_str(), -1, SQLITE_TRANSIENT);
+    
+    bool found = (sqlite3_step(stmt) == SQLITE_ROW);
+    sqlite3_finalize(stmt);
+    
+    return found;
+}
+
 void closeDatabase(sqlite3* db) {
     if (db)
         sqlite3_close(db);

@@ -301,6 +301,49 @@ int main() {
                 lib.deleteMember(memberID);
                 sendResponse(id, true, "{\"message\":\"Member deleted successfully\"}");
             }
+            else if (method == "register") {
+                std::string username = parser.getString("username", "");
+                std::string password = parser.getString("password", "");
+                
+                if (username.empty() || password.empty()) {
+                    sendError(id, "Missing required fields: username, password");
+                    continue;
+                }
+                
+                // Check if user already exists
+                if (userExists(lib.db, username)) {
+                    sendError(id, "Username already exists");
+                    continue;
+                }
+                
+                // Simple hash (NOT SECURE - use proper hashing in production)
+                std::string passwordHash = password; // TODO: Add proper bcrypt/scrypt
+                
+                int userId = insertUser(lib.db, username, passwordHash);
+                if (userId > 0) {
+                    sendResponse(id, true, "{\"message\":\"User registered successfully\"}");
+                } else {
+                    sendError(id, "Failed to register user");
+                }
+            }
+            else if (method == "login") {
+                std::string username = parser.getString("username", "");
+                std::string password = parser.getString("password", "");
+                
+                if (username.empty() || password.empty()) {
+                    sendError(id, "Missing required fields: username, password");
+                    continue;
+                }
+                
+                // Simple hash (NOT SECURE - use proper hashing in production)
+                std::string passwordHash = password;
+                
+                if (authenticateUser(lib.db, username, passwordHash)) {
+                    sendResponse(id, true, "{\"message\":\"Login successful\",\"username\":\"" + JSON::escape(username) + "\"}");
+                } else {
+                    sendError(id, "Invalid username or password");
+                }
+            }
             else {
                 sendError(id, "Unknown method: " + method);
             }

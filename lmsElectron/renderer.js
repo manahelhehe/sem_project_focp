@@ -228,6 +228,7 @@ function initDashboardStats() {
 // ---------- PAGE INITIALIZERS ----------
 document.addEventListener('DOMContentLoaded', () => {
     initLoginPage();
+    initSignupPage();
     initDashboard();
     initQuickActions();
     initDashboardStats();
@@ -358,60 +359,183 @@ function initLoginPage() {
     const password = document.getElementById('password');
     const errorDiv = document.getElementById('login-error');
 
-        loginBtn.addEventListener('click', (ev) => {
-            console.log('[UI] login button clicked', { username: username?.value, passwordPresent: !!(password && password.value) });
-            // debug: log element metrics and styles
-            try {
-                const r = loginBtn.getBoundingClientRect();
-                console.log('[UI] loginBtn rect', r, 'computedStyle pointer-events', window.getComputedStyle(loginBtn)['pointer-events']);
-            } catch (e) {}
+    loginBtn.addEventListener('click', async () => {
+        console.log('[UI] login button clicked');
+        
+        if (!username || !password) return;
+        
+        if (!username.value.trim() || !password.value.trim()) {
+            if (errorDiv) errorDiv.textContent = "Please enter username and password.";
+            return;
+        }
 
-            if (!username.value.trim() || !password.value.trim()) {
-                if (errorDiv) errorDiv.textContent = "Please enter username and password.";
-                return;
-            }
+        try {
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Logging in...';
+            if (errorDiv) errorDiv.textContent = '';
+            
+            const result = await window.api.login(username.value.trim(), password.value.trim());
+            
+            console.log('[UI] login successful', result);
+            
+            // Store session
+            sessionStorage.setItem('loggedInUser', result.username || username.value.trim());
+            
+            // Navigate to dashboard
+            window.location.href = "dashboard.html";
+        } catch (err) {
+            console.error('[UI] login failed', err);
+            if (errorDiv) errorDiv.textContent = err.message || 'Login failed. Please try again.';
+            loginBtn.disabled = false;
+            loginBtn.textContent = 'Login';
+        }
+    });
 
-            // try multiple navigation strategies in case one is blocked
-            try {
-                window.location.href = "dashboard.html";
-            } catch (e) { console.warn('href navigation failed', e); }
-            try {
-                window.location.assign("dashboard.html");
-            } catch (e) { console.warn('assign navigation failed', e); }
-            try {
-                window.open('dashboard.html', '_self');
-            } catch (e) { console.warn('open navigation failed', e); }
-
-            // as a last resort, delay a redirect (some overlays may swallow the immediate change)
-            setTimeout(() => { try { window.location.href = 'dashboard.html'; } catch (e) {} }, 120);
+    // Enter key support
+    if (password) {
+        password.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') loginBtn.click();
         });
-
-        // global click logger (debug only) to detect intercepted clicks
-        document.addEventListener('click', (e) => {
-            try {
-                const t = e.target;
-                if (t && t.id === 'loginBtn') console.log('[DEBUG] document click captured on loginBtn (bubble)', t);
-                // also log if any element is covering the button
-                const btn = document.getElementById('loginBtn');
-                if (btn) {
-                    const pt = { x: btn.getBoundingClientRect().left + 2, y: btn.getBoundingClientRect().top + 2 };
-                    const topEl = document.elementFromPoint(pt.x, pt.y);
-                    if (topEl && topEl !== btn) console.log('[DEBUG] elementAt(loginBtn) ->', topEl, 'id:', topEl.id, 'class:', topEl.className);
-                }
-            } catch (e) { }
-        }, true);
+    }
 }
 
-// Ensure login handler attaches even if DOMContentLoaded timing is unexpected
-try { initLoginPage(); } catch (e) { /* ignore */ }
+function initSignupPage() {
+    const signupBtn = document.getElementById('signup-btn');
+    if (!signupBtn) return;
+
+    const username = document.getElementById('signup-username');
+    const password = document.getElementById('signup-password');
+    const confirmPassword = document.getElementById('signup-confirm-password');
+    const errorDiv = document.getElementById('signup-error');
+    const successDiv = document.getElementById('signup-success');
+
+    signupBtn.addEventListener('click', async () => {
+        console.log('[UI] signup button clicked');
+        
+        if (errorDiv) errorDiv.textContent = '';
+        if (successDiv) successDiv.textContent = '';
+        
+        if (!username || !password || !confirmPassword) return;
+        
+        if (!username.value.trim() || !password.value.trim() || !confirmPassword.value.trim()) {
+            if (errorDiv) errorDiv.textContent = "Please fill all fields.";
+            return;
+        }
+        
+        if (password.value !== confirmPassword.value) {
+            if (errorDiv) errorDiv.textContent = "Passwords do not match.";
+            return;
+        }
+        
+        if (password.value.length < 4) {
+            if (errorDiv) errorDiv.textContent = "Password must be at least 4 characters.";
+            return;
+        }
+
+        try {
+            signupBtn.disabled = true;
+            signupBtn.textContent = 'Creating account...';
+            
+            const result = await window.api.register(username.value.trim(), password.value);
+            console.log('[UI] Registration successful:', result);
+            
+            if (successDiv) {
+                successDiv.textContent = "Account created successfully! Redirecting to login...";
+            }
+            
+            setTimeout(() => {
+                window.location.href = "index.html";
+            }, 1500);
+        } catch (error) {
+            console.error('[UI] Registration failed:', error);
+            if (errorDiv) errorDiv.textContent = error.message || "Failed to create account";
+            signupBtn.disabled = false;
+            signupBtn.textContent = 'Create Account';
+        }
+    });
+    
+    // Enter key support
+    if (confirmPassword) {
+        confirmPassword.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') signupBtn.click();
+        });
+    }
+}
+
+// Signup page handler
+function initSignupPage() {
+    const signupBtn = document.getElementById('signup-btn');
+    if (!signupBtn) return;
+
+    const username = document.getElementById('signup-username');
+    const password = document.getElementById('signup-password');
+    const confirmPassword = document.getElementById('signup-confirm-password');
+    const errorDiv = document.getElementById('signup-error');
+    const successDiv = document.getElementById('signup-success');
+
+    signupBtn.addEventListener('click', async () => {
+        console.log('[UI] signup button clicked');
+        
+        if (!username || !password || !confirmPassword) return;
+        
+        if (errorDiv) errorDiv.textContent = '';
+        if (successDiv) successDiv.textContent = '';
+        
+        if (!username.value.trim() || !password.value.trim()) {
+            if (errorDiv) errorDiv.textContent = "Please enter username and password.";
+            return;
+        }
+        
+        if (password.value !== confirmPassword.value) {
+            if (errorDiv) errorDiv.textContent = "Passwords do not match.";
+            return;
+        }
+        
+        if (password.value.length < 4) {
+            if (errorDiv) errorDiv.textContent = "Password must be at least 4 characters.";
+            return;
+        }
+
+        try {
+            signupBtn.disabled = true;
+            signupBtn.textContent = 'Creating Account...';
+            
+            const result = await window.api.register(username.value.trim(), password.value);
+            
+            console.log('[UI] signup successful', result);
+            
+            if (successDiv) successDiv.textContent = 'Account created successfully! Redirecting to login...';
+            
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 2000);
+        } catch (err) {
+            console.error('[UI] signup failed', err);
+            if (errorDiv) errorDiv.textContent = err.message || 'Signup failed. Please try again.';
+            signupBtn.disabled = false;
+            signupBtn.textContent = 'Create Account';
+        }
+    });
+
+    // Enter key support
+    if (confirmPassword) {
+        confirmPassword.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') signupBtn.click();
+        });
+    }
+}
 
 // ---------- DASHBOARD ----------
 function initDashboard() {
-    // Navigation is now handled by onclick handlers in HTML, no need to do anything here
-}
-
-// Enhance dashboard: recommendations
-function initDashboard() {
+    // Logout button handler
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            sessionStorage.clear();
+            window.location.href = 'index.html';
+        });
+    }
+    
     const recList = document.getElementById('recommendations');
     if (!recList) return;
 

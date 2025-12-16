@@ -14,11 +14,12 @@ class library
 
     std::vector<book> books;
     std::vector<member> members;
-    sqlite3* db = nullptr;
 
     // Object-Pointer Return-Type (?)
 
     public:
+
+    sqlite3* db = nullptr;
 
     book* findBook(int bookID);
     member* findMember(int memberID);
