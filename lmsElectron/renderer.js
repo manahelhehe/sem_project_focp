@@ -80,45 +80,48 @@ function withLoader(fn, delay = 160) {
 
 function renderSuggestions(container, items, renderText) {
     if (!container) return;
-    container .innerHTML = '';
-    if (!items || items. length ===0) { container. style.display = 'none'; return; }
-    items. slice(0, 10).forEach(it=> {
-        const div = document. createElement('div');
-        div .className = 'suggestion-item';
-        div. textContent = renderText ? renderText(it): (it.name || it. title || '');
-        div. dataset.value = JSON .stringify(it);
-        container. appendChild(div);
-        requestAnimationFrame(()=> { div. classList.add('in'); });
+    container.innerHTML = '';
+    if (!items || items.length === 0) { container.style.display = 'none'; return; }
+    items.slice(0, 10).forEach(it => {
+        const div = document.createElement('div');
+        div.className = 'suggestion-item';
+        div.textContent = renderText ? renderText(it) : (it.name || it.title || '');
+        div.dataset.value = JSON.stringify(it);
+        container.appendChild(div);
+        requestAnimationFrame(() => { div.classList.add('in'); });
     });
-    container .style.display = 'block';
+    container.style.display = 'block';
 }
 
 function closeAllSuggestions() {
-    const els = document. querySelectorAll('.suggestions');
-    els. forEach(e=> { e. style.display = 'none'; });
+    const els = document.querySelectorAll('.suggestions');
+    els.forEach(e => { e.style.display = 'none'; });
 }
 
 async function resolveBookFromInput(input) {
     if (!input) return null;
     const list = await fetchBooksCached();
-    const q = String(input). trim();
-    const qLower = q .toLowerCase();
+    const q = String(input).trim();
+    const qLower = q.toLowerCase();
     
-    if (/^\d+$/. test(q)) {
+    // If numeric, try id
+    if (/^\d+$/.test(q)) {
         const id = parseInt(q);
-        const book = list. find(b=> b.id ===id);
+        const book = list.find(b => b.id === id);
         if (book) return book;
     }
     
-    let book = list. find(b=> 
-        (b.title || ''). toLowerCase() ===qLower || 
-        (b.isbn || ''). toLowerCase() === qLower
+    // Try exact match first (case-insensitive)
+    let book = list.find(b => 
+        (b.title || '').toLowerCase() === qLower || 
+        (b.isbn || '').toLowerCase() === qLower
     );
     if (book) return book;
     
-    book = list .find(b=> 
-        (b.title || ''). toLowerCase().includes(qLower) || 
-        (b.isbn || ''). toLowerCase(). includes(qLower)
+    // Try partial match
+    book = list.find(b => 
+        (b.title || '').toLowerCase().includes(qLower) || 
+        (b.isbn || '').toLowerCase().includes(qLower)
     );
     return book || null;
 }
@@ -126,58 +129,65 @@ async function resolveBookFromInput(input) {
 async function resolveMemberFromInput(input) {
     if (!input) return null;
     const list = await fetchMembersCached();
-    const q = String(input) .trim();
-    const qLower = q. toLowerCase();
+    const q = String(input).trim();
+    const qLower = q.toLowerCase();
     
-    if (/^\d+$/ .test(q)) {
+    // If numeric, try id
+    if (/^\d+$/.test(q)) {
         const id = parseInt(q);
-        const member = list .find(m=> m.id=== id);
+        const member = list.find(m => m.id === id);
         if (member) return member;
     }
     
-    let member = list. find(m=> (m.name || '') .toLowerCase() ===qLower);
+    // Try exact match first (case-insensitive)
+    let member = list.find(m => (m.name || '').toLowerCase() === qLower);
     if (member) return member;
     
-    member = list. find(m=> (m.name || ''). toLowerCase(). includes(qLower));
+    // Try partial match
+    member = list.find(m => (m.name || '').toLowerCase().includes(qLower));
     return member || null;
 }
 
+// Helper to show errors
 function showError(msg) {
-    console. error(msg);
+    console.error(msg);
     showToast(msg, true);
 }
 
+// Small toast helper
+// Toast queue using a container
 function _ensureToastContainer() {
-    let c = document. querySelector('.toast-container');
+    let c = document.querySelector('.toast-container');
     if (!c) {
-        c = document .createElement('div');
-        c. className = 'toast-container';
-        document. body.appendChild(c);
+        c = document.createElement('div');
+        c.className = 'toast-container';
+        document.body.appendChild(c);
     }
     return c;
 }
 
 function showToast(message, isError = false, timeout = 3000) {
     const container = _ensureToastContainer();
-    const t = document. createElement('div');
-    t. className = 'toast show';
-    t. style.background = isError ? 'linear-gradient(90deg,#a83a3a,#7a1f1f)':'linear-gradient(90deg,#333,#1a1a1a)';
-    t .style.color = '#fff';
-    t. textContent = message;
-    container. appendChild(t);
-    requestAnimationFrame(()=> { t. classList.add('show'); });
-    setTimeout(()=> { t. classList.remove('show'); t. style.opacity = '0'; }, timeout -400);
-    setTimeout(()=> { if (t. parentNode) t. parentNode.removeChild(t); }, timeout);
+    const t = document.createElement('div');
+    t.className = 'toast show';
+    t.style.background = isError ? 'linear-gradient(90deg,#a83a3a,#7a1f1f)' : 'linear-gradient(90deg,#333,#1a1a1a)';
+    t.style.color = '#fff';
+    t.textContent = message;
+    container.appendChild(t);
+    requestAnimationFrame(() => { t.classList.add('show'); });
+    setTimeout(() => { t.classList.remove('show'); t.style.opacity = '0'; }, timeout - 400);
+    setTimeout(() => { if (t.parentNode) t.parentNode.removeChild(t); }, timeout);
 }
 
+// Confirm modal helper: returns a Promise<boolean>
 function showConfirmModal(title, message) {
-    return new Promise(resolve=> {
-        const backdrop = document. createElement('div');
-        backdrop .className = 'modal-backdrop';
+    return new Promise(resolve => {
+        const backdrop = document.createElement('div');
+        backdrop.className = 'modal-backdrop';
 
-        const modal = document .createElement('div');
-        modal. className = 'modal';
-        modal .innerHTML = `
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.innerHTML = `
             <div class="modal-title">${title}</div>
             <div class="modal-body">${message}</div>
             <div class="modal-actions">
@@ -186,18 +196,18 @@ function showConfirmModal(title, message) {
             </div>
         `;
 
-        backdrop. appendChild(modal);
-        document .body.appendChild(backdrop);
+        backdrop.appendChild(modal);
+        document.body.appendChild(backdrop);
 
-        requestAnimationFrame(()=> { backdrop. classList.add('in'); modal. classList.add('in'); });
+        requestAnimationFrame(() => { backdrop.classList.add('in'); modal.classList.add('in'); });
 
-        const doClose = (val)=> {
-            modal. classList.remove('in'); backdrop. classList.remove('in');
-            setTimeout(()=> { try { if (backdrop. parentNode) backdrop .parentNode.removeChild(backdrop); } catch (e){}; resolve(val); }, 220);
+        const doClose = (val) => {
+            modal.classList.remove('in'); backdrop.classList.remove('in');
+            setTimeout(() => { try { if (backdrop.parentNode) backdrop.parentNode.removeChild(backdrop); } catch (e){}; resolve(val); }, 220);
         };
 
-        modal. querySelector('#modal-cancel').addEventListener('click', ()=> doClose(false));
-        modal. querySelector('#modal-confirm').addEventListener('click', ()=> doClose(true));
+        modal.querySelector('#modal-cancel').addEventListener('click', () => doClose(false));
+        modal.querySelector('#modal-confirm').addEventListener('click', () => doClose(true));
     });
 }
 
@@ -209,29 +219,29 @@ function initDashboardStats() {
 
     async function loadStats() {
         try {
-            if (refreshStatsBtn) refreshStatsBtn. disabled = true;
-            const allBooks = await window .api.getAllBooks();
-            const allMembers = await window. api.getAllMembers();
-            const bCount = allBooks ? allBooks .length: 0;
-            const mCount = allMembers ? allMembers. length :0;
-            const borrowed = allBooks ? allBooks. filter(b=> b.borrowed).length :0;
-            if (booksCount) booksCount. textContent = bCount;
-            if (membersCount) membersCount .textContent = mCount;
-            if (borrowedCount) borrowedCount. textContent = borrowed;
-            if (refreshStatsBtn) refreshStatsBtn .disabled = false;
+            if (refreshStatsBtn) refreshStatsBtn.disabled = true;
+            const allBooks = await window.api.getAllBooks();
+            const allMembers = await window.api.getAllMembers();
+            const bCount = allBooks ? allBooks.length : 0;
+            const mCount = allMembers ? allMembers.length : 0;
+            const borrowed = allBooks ? allBooks.filter(b => b.borrowed).length : 0;
+            if (booksCount) booksCount.textContent = bCount;
+            if (membersCount) membersCount.textContent = mCount;
+            if (borrowedCount) borrowedCount.textContent = borrowed;
+            if (refreshStatsBtn) refreshStatsBtn.disabled = false;
         } catch (err) {
-            if (booksCount) booksCount. textContent = '--';
-            if (membersCount) membersCount. textContent = '--';
-            if (borrowedCount) borrowedCount .textContent = '--';
-            if (refreshStatsBtn) refreshStatsBtn. disabled = false;
+            if (booksCount) booksCount.textContent = '--';
+            if (membersCount) membersCount.textContent = '--';
+            if (borrowedCount) borrowedCount.textContent = '--';
+            if (refreshStatsBtn) refreshStatsBtn.disabled = false;
         }
     }
 
-    if (refreshStatsBtn) refreshStatsBtn. addEventListener('click', loadStats);
+    if (refreshStatsBtn) refreshStatsBtn.addEventListener('click', loadStats);
     loadStats();
 }
 
-document. addEventListener('DOMContentLoaded', ()=> {
+document.addEventListener('DOMContentLoaded', () => {
     initLoginPage();
     initSignupPage();
     initDashboard();
@@ -253,7 +263,6 @@ document. addEventListener('DOMContentLoaded', ()=> {
 });
 
 function initQuickActions() {
-function initQuickActions() {
     const bookInput = document.getElementById('qa-book-input');
     const memberInput = document.getElementById('qa-member-input');
     const bookSug = document.getElementById('qa-book-suggestions');
@@ -263,7 +272,6 @@ function initQuickActions() {
 
     if (!bookInput || !memberInput) return;
 
-    // collapse/expand toggle to avoid crowding
     const qaRoot = document.getElementById('quick-actions');
     const qaToggle = document.getElementById('qa-toggle');
     if (qaRoot && qaToggle) {
@@ -273,49 +281,50 @@ function initQuickActions() {
         });
     }
 
-    const onBookInput = debounce(async ()=> {
-        const v = bookInput. value.trim();
-        if (!v) { if (bookSug) bookSug .style.display = 'none'; return; }
+    const onBookInput = debounce(async () => {
+        const v = bookInput.value.trim();
+        if (!v) { if (bookSug) bookSug.style.display = 'none'; return; }
         const list = await fetchBooksCached();
-        const q = v. toLowerCase();
-        const matches = list. filter(b=> String(b.id) ===q || (b.title||''). toLowerCase().includes(q) || (b.isbn||'') .toLowerCase(). includes(q));
-        renderSuggestions(bookSug, matches, (b)=> `${b.id} — ${b.title} ${b.borrowed? '(Issued)':''}`);
+        const q = v.toLowerCase();
+        const matches = list.filter(b => String(b.id) === q || (b.title||'').toLowerCase().includes(q) || (b.isbn||'').toLowerCase().includes(q));
+        renderSuggestions(bookSug, matches, (b) => `${b.id} — ${b.title} ${b.borrowed? '(Issued)':''}`);
     }, 180);
 
-    const onMemberInput = debounce(async ()=> {
-        const v = memberInput. value.trim();
-        if (!v) { if (memberSug) memberSug. style.display = 'none'; return; }
+    const onMemberInput = debounce(async () => {
+        const v = memberInput.value.trim();
+        if (!v) { if (memberSug) memberSug.style.display = 'none'; return; }
         const list = await fetchMembersCached();
-        const q = v .toLowerCase();
-        const matches = list. filter(m=> String(m.id) ===q || (m.name||''). toLowerCase(). includes(q));
-        renderSuggestions(memberSug, matches, (m)=> `${m.id} — ${m.name}`);
+        const q = v.toLowerCase();
+        const matches = list.filter(m => String(m.id) === q || (m.name||'').toLowerCase().includes(q));
+        renderSuggestions(memberSug, matches, (m) => `${m.id} — ${m.name}`);
     }, 180);
 
-    bookInput. addEventListener('input', onBookInput);
-    memberInput. addEventListener('input', onMemberInput);
+    bookInput.addEventListener('input', onBookInput);
+    memberInput.addEventListener('input', onMemberInput);
 
-    document. addEventListener('click', (e)=> {
-        if (!e. target.classList.contains('suggestion-item')) closeAllSuggestions();
+    document.addEventListener('click', (e) => {
+        if (!e.target.classList.contains('suggestion-item')) closeAllSuggestions();
     });
 
-    if (bookSug) bookSug. addEventListener('click', (e)=> {
-        const it = e. target.closest('.suggestion-item');
+    // suggestion click handlers (delegation)
+    if (bookSug) bookSug.addEventListener('click', (e) => {
+        const it = e.target.closest('.suggestion-item');
         if (!it) return;
-        const obj = JSON. parse(it.dataset. value || '{}');
-        bookInput. value = obj.id ? String(obj. id): (obj.title || '');
-        bookSug. style.display = 'none';
+        const obj = JSON.parse(it.dataset.value || '{}');
+        bookInput.value = obj.id ? String(obj.id) : (obj.title || '');
+        bookSug.style.display = 'none';
     });
-    if (memberSug) memberSug .addEventListener('click', (e)=> {
-        const it = e .target.closest('.suggestion-item');
+    if (memberSug) memberSug.addEventListener('click', (e) => {
+        const it = e.target.closest('.suggestion-item');
         if (!it) return;
-        const obj = JSON .parse(it.dataset. value || '{}');
-        memberInput. value = obj.id ? String(obj .id): (obj.name || '');
-        memberSug .style.display = 'none';
+        const obj = JSON.parse(it.dataset.value || '{}');
+        memberInput.value = obj.id ? String(obj.id) : (obj.name || '');
+        memberSug.style.display = 'none';
     });
 
-    if (issueBtn) issueBtn. addEventListener('click', async ()=> {
-        const bookVal = bookInput. value.trim();
-        const memberVal = memberInput. value.trim();
+    if (issueBtn) issueBtn.addEventListener('click', async () => {
+        const bookVal = bookInput.value.trim();
+        const memberVal = memberInput.value.trim();
         if (!bookVal || !memberVal) { showToast('Enter book and member', true); return; }
         const book = await resolveBookFromInput(bookVal);
         const member = await resolveMemberFromInput(memberVal);
@@ -324,18 +333,18 @@ function initQuickActions() {
         const ok = await showConfirmModal('Quick Issue', `Issue "${book.title}" to ${member.name}?`);
         if (!ok) return;
         try {
-            issueBtn. disabled = true;
-            await window. api.issueBook(book.id, member.id);
+            issueBtn.disabled = true;
+            await window.api.issueBook(book.id, member.id);
             showToast('Book issued');
-            _bookCache. ts = 0;
+            _bookCache.ts = 0; // invalidate cache
             initDashboardStats();
-            issueBtn .disabled = false;
-        } catch (err) { issueBtn. disabled = false; showToast('Issue failed: '+err. message, true); }
+            issueBtn.disabled = false;
+        } catch (err) { issueBtn.disabled = false; showToast('Issue failed: '+err.message, true); }
     });
 
-    if (returnBtn) returnBtn. addEventListener('click', async ()=> {
-        const bookVal = bookInput .value.trim();
-        const memberVal = memberInput. value.trim();
+    if (returnBtn) returnBtn.addEventListener('click', async () => {
+        const bookVal = bookInput.value.trim();
+        const memberVal = memberInput.value.trim();
         if (!bookVal || !memberVal) { showToast('Enter book and member', true); return; }
         const book = await resolveBookFromInput(bookVal);
         const member = await resolveMemberFromInput(memberVal);
@@ -344,13 +353,13 @@ function initQuickActions() {
         const ok = await showConfirmModal('Quick Return', `Return "${book.title}" from ${member.name}?`);
         if (!ok) return;
         try {
-            returnBtn .disabled = true;
-            await window .api.returnBook(book.id, member.id);
+            returnBtn.disabled = true;
+            await window.api.returnBook(book.id, member.id);
             showToast('Book returned');
-            _bookCache .ts = 0;
+            _bookCache.ts = 0;
             initDashboardStats();
-            returnBtn. disabled = false;
-        } catch (err) { returnBtn. disabled = false; showToast('Return failed: '+err .message, true); }
+            returnBtn.disabled = false;
+        } catch (err) { returnBtn.disabled = false; showToast('Return failed: '+err.message, true); }
     });
 }
 
@@ -362,6 +371,7 @@ function initLoginPage() {
     const passwordInput = document.getElementById('password');
     const errorDiv = document.getElementById('login-error');
     
+    // Auto-focus username input
     if (usernameInput) setTimeout(() => usernameInput.focus(), 100);
 
     const handleLogin = async () => {
@@ -402,7 +412,6 @@ function initLoginPage() {
 }
 
 function initSignupPage() {
-function initSignupPage() {
     const signupBtn = document.getElementById('signupBtn');
     if (!signupBtn) return;
 
@@ -412,6 +421,7 @@ function initSignupPage() {
     const errorDiv = document.getElementById('signup-error');
     const successDiv = document.getElementById('signup-success');
     
+    // Auto-focus username input
     if (usernameInput) setTimeout(() => usernameInput.focus(), 100);
 
     const handleSignup = async () => {
@@ -465,8 +475,7 @@ function initSignupPage() {
 }
 
 function initDashboard() {
-// Enhance dashboard: recommendations and logout
-function initDashboard() {
+    // Display logged-in username
     const usernameText = document.getElementById('username-text');
     if (usernameText) {
         const username = sessionStorage.getItem('username');
@@ -475,6 +484,7 @@ function initDashboard() {
         }
     }
 
+    // Logout button handler
     const logoutBtn = document.getElementById('logout-btn');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', () => {
@@ -495,7 +505,6 @@ function initDashboard() {
                 return;
             }
 
-            // pick up to 5 available books at random
             const avail = books.filter(b => !b.borrowed);
             const candidates = avail.length ? avail : books;
             const shuffled = candidates.sort(() => 0.5 - Math.random());
@@ -523,7 +532,6 @@ function initDashboard() {
                 li.addEventListener('mouseleave', () => { li.style.transform = 'translateY(0)'; li.style.boxShadow = 'none'; });
                 recList.appendChild(li);
             }
-            // also update recently added area
             loadRecentAdded();
         } catch (err) {
             recList.innerHTML = '<li>Error loading recommendations</li>';
@@ -547,6 +555,7 @@ function initDashboard() {
                 requestAnimationFrame(() => { d.classList.add('in'); });
             });
         } catch (err) {
+            // ignore
         }
     }
 }
@@ -557,7 +566,6 @@ function initBackButtons() {
 }
 
 function initAddBookPage() {
-function initAddBookPage() {
     const addBookSubmit = document.getElementById('add-book-submit');
     if (!addBookSubmit) return;
 
@@ -566,9 +574,11 @@ function initAddBookPage() {
     const coverUrlInput = document.getElementById('book-cover-url');
     const coverPreview = document.getElementById('cover-preview');
     
+    // Auto-focus title input for better UX
     const titleInput = document.getElementById('book-title');
     if (titleInput) setTimeout(() => titleInput.focus(), 100);
 
+    // Auto-fetch book cover from Google Books API
     if (fetchCoverBtn) {
         fetchCoverBtn.addEventListener('click', async () => {
             const isbn = document.getElementById('book-isbn').value.trim();
@@ -589,6 +599,7 @@ function initAddBookPage() {
                     const coverUrl = book.imageLinks?.thumbnail || book.imageLinks?.smallThumbnail;
                     
                     if (coverUrl) {
+                        // Use HTTPS version of URL
                         const httpsUrl = coverUrl.replace('http:', 'https:');
                         coverUrlInput.value = httpsUrl;
                         coverPreview.innerHTML = `<img src="${httpsUrl}" alt="Book cover" style="max-height: 150px; border: 1px solid #ddd; border-radius: 4px;">`;
@@ -637,12 +648,12 @@ function initAddBookPage() {
 }
 
 function initAddMemberPage() {
-function initAddMemberPage() {
     const addMemberSubmit = document.getElementById('add-member-submit');
     if (!addMemberSubmit) return;
 
     const msgDiv = document.getElementById('addmember-message');
     
+    // Auto-focus name input for better UX
     const nameInput = document.getElementById('member-name');
     if (nameInput) setTimeout(() => nameInput.focus(), 100);
 
@@ -656,6 +667,7 @@ function initAddMemberPage() {
         }
 
         try {
+            // Don't pass ID — backend auto-increments
             await window.api.addMember(name, address);
             if (msgDiv) { msgDiv.style.color = "green"; msgDiv.textContent = `✅ Member "${name}" added successfully!`; }
             document.getElementById('member-name').value = "";
@@ -689,7 +701,6 @@ function initDeleteBookPage() {
                 return;
             }
             
-            // Show each result with a delete button
             results.forEach(b => {
                 const div = document.createElement('div');
                 div.style.cssText = 'border:1px solid #ddd; padding:12px; margin:10px 0; border-radius:5px; background:#f9f9f9; display:flex; justify-content:space-between; align-items:center;';
@@ -711,7 +722,6 @@ function initDeleteBookPage() {
         }
     };
 
-    // Handle delete button clicks via delegation
     resultDiv.addEventListener('click', async (e) => {
         const btn = e.target.closest('.delete-book-btn');
         if (!btn) return;
@@ -767,7 +777,6 @@ function initDeleteMemberPage() {
                 return;
             }
             
-            // Show each result with a delete button
             results.forEach(m => {
                 const div = document.createElement('div');
                 div.style.cssText = 'border:1px solid #ddd; padding:12px; margin:10px 0; border-radius:5px; background:#f9f9f9; display:flex; justify-content:space-between; align-items:center;';
@@ -788,7 +797,6 @@ function initDeleteMemberPage() {
         }
     };
 
-    // Handle delete button clicks via delegation
     resultDiv.addEventListener('click', async (e) => {
         const btn = e.target.closest('.delete-member-btn');
         if (!btn) return;
@@ -819,7 +827,6 @@ function initDeleteMemberPage() {
     input.addEventListener('keydown', (e) => { if (e.key === 'Enter') doSearch(input.value.trim()); });
 }
 
-function initViewBooksPage() {
 function initViewBooksPage() {
     const booksTable = document.getElementById('books-table');
     if (!booksTable) return;
@@ -877,7 +884,6 @@ function initViewBooksPage() {
 
     loadBooks();
 
-    // add sortable headers (assumes columns: Cover, ID, Title, Author, ISBN, Genre, Status)
     const ths = booksTable.querySelectorAll('th');
     if (ths && ths.length >= 7) {
         const keyMap = [null,'id','title','author','isbn','genre','borrowed']; // null for Cover column
@@ -896,12 +902,10 @@ function initViewBooksPage() {
         });
     }
 
-    // refresh button
     const refreshBtn = document.getElementById('refresh-books-btn');
     if (refreshBtn) refreshBtn.addEventListener('click', loadBooks);
 }
 
-    // export CSV
     const exportBooksBtn = document.getElementById('export-books-btn');
     if (exportBooksBtn) exportBooksBtn.addEventListener('click', async () => {
         try {
@@ -921,7 +925,6 @@ function initViewBooksPage() {
     });
 
 
-function initViewMembersPage() {
 function initViewMembersPage() {
     const membersTable = document.getElementById('members-table');
     if (!membersTable) return;
@@ -1006,6 +1009,7 @@ function initViewMembersPage() {
                     if (f) borrowedTitles.push(f.title);
                 }
 
+                // arrays of borrowed books
                 const arr = member.borrowed || member.borrowedBooks;
                 if (Array.isArray(arr)) {
                     arr.forEach(id => {
@@ -1014,6 +1018,7 @@ function initViewMembersPage() {
                     });
                 }
 
+                // fallback: books issuedTo
                 const fallback = (booksList || []).filter(b =>
                     b.borrowed &&
                     (String(b.issuedTo) === String(member.id) ||
@@ -1148,7 +1153,6 @@ function initViewMembersPage() {
 
 
 function initSearchBookPage() {
-function initSearchBookPage() {
     const searchBookBtnPage = document.getElementById('search-book-btn');
     if (!searchBookBtnPage) return;
 
@@ -1210,7 +1214,6 @@ function initSearchBookPage() {
 }
 
 function initSearchMemberPage() {
-function initSearchMemberPage() {
     const searchMemberBtnPage = document.getElementById('search-member-btn');
     if (!searchMemberBtnPage) return;
 
@@ -1233,6 +1236,7 @@ function initSearchMemberPage() {
             if (result && !(Array.isArray(result) && result.length === 0)) {
                 items = Array.isArray(result) ? result : [result];
             } else {
+                // Backend returned nothing; fallback to client-side case-insensitive search
                 const allMembers = await fetchMembersCached();
                 items = (allMembers || []).filter(m => {
                     const name = (m.name || '').toLowerCase();
@@ -1272,7 +1276,6 @@ function initSearchMemberPage() {
     input.addEventListener('keydown', (e) => { if (e.key === 'Enter') doMemberSearch(input.value.trim()); });
 }
 
-function initIssueBookPage() {
 function initIssueBookPage() {
     const issueBookSubmit = document.getElementById('issue-book-btn');
     if (!issueBookSubmit) return;
@@ -1433,11 +1436,9 @@ function initBorrowedBooksPage() {
 
     loadBorrowed();
 
-    // refresh button
     const refreshBtn = document.getElementById('refresh-borrowed-btn');
     if (refreshBtn) refreshBtn.addEventListener('click', loadBorrowed);
 
-    // sortable headers for borrowed table
     const bths = borrowedBooksTable.querySelectorAll('th');
     if (bths && bths.length >= 5) {
         const keyMap = ['id','title','author','isbn','issuedTo'];
