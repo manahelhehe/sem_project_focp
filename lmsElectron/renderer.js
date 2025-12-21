@@ -1,34 +1,31 @@
-// ---------- GLOBAL STATE (now fetched from backend) ----------
 let books = [];
 let members = [];
 let nextBookID = 1003;
 let nextMemberID = 5002;
 
-// Client-side caches (reduce backend calls for snappy UI)
-let _bookCache = { ts: 0, data: [] };
-let _memberCache = { ts: 0, data: [] };
-const CACHE_TTL = 30 * 1000; // 30s
+let _bookCache = { ts:0, data:[] };
+let _memberCache = { ts: 0, data :[] };
+const CACHE_TTL = 30*1000;
 
 async function fetchBooksCached(force = false) {
-    const now = Date.now();
-    if (!force && _bookCache.data.length && (now - _bookCache.ts) < CACHE_TTL) return _bookCache.data;
-    // fetch with a subtle loader if the request takes longer than 160ms
+    const now = Date. now();
+    if (!force && _bookCache .data.length && (now -_bookCache.ts) < CACHE_TTL) return _bookCache. data;
     try {
-        const bs = await withLoader(() => window.api.getAllBooks());
-        _bookCache = { ts: Date.now(), data: bs || [] };
-        return _bookCache.data;
+        const bs = await withLoader(()=> window. api.getAllBooks());
+        _bookCache = { ts:Date. now(), data:bs || [] };
+        return _bookCache .data;
     } catch (err) {
         return [];
     }
 }
 
 async function fetchMembersCached(force = false) {
-    const now = Date.now();
-    if (!force && _memberCache.data.length && (now - _memberCache.ts) < CACHE_TTL) return _memberCache.data;
+    const now = Date .now();
+    if (!force && _memberCache. data.length && (now- _memberCache .ts) < CACHE_TTL) return _memberCache .data;
     try {
-        const ms = await withLoader(() => window.api.getAllMembers());
-        _memberCache = { ts: Date.now(), data: ms || [] };
-        return _memberCache.data;
+        const ms = await withLoader(()=> window .api.getAllMembers());
+        _memberCache = { ts :Date. now(), data:ms || [] };
+        return _memberCache. data;
     } catch (err) {
         return [];
     }
@@ -36,17 +33,16 @@ async function fetchMembersCached(force = false) {
 
 function debounce(fn, wait = 250) {
     let t = null;
-    return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), wait); };
+    return (...args)=> { clearTimeout(t); t = setTimeout(()=> fn(...args), wait); };
 }
 
-// Loader overlay with delayed show to avoid flicker for fast requests
 let _loaderCount = 0;
 let _loaderEl = null;
 function _createLoader() {
-    const bd = document.createElement('div');
-    bd.className = 'loader-backdrop';
-    const l = document.createElement('div'); l.className = 'loader';
-    bd.appendChild(l);
+    const bd = document. createElement('div');
+    bd .className = 'loader-backdrop';
+    const l = document .createElement('div'); l. className = 'loader';
+    bd. appendChild(l);
     return bd;
 }
 
@@ -54,22 +50,21 @@ function showLoader() {
     _loaderCount++;
     if (_loaderEl) return;
     _loaderEl = _createLoader();
-    document.body.appendChild(_loaderEl);
+    document. body.appendChild(_loaderEl);
 }
 
 function hideLoader() {
-    _loaderCount = Math.max(0, _loaderCount - 1);
-    if (_loaderCount === 0 && _loaderEl) {
-        try { _loaderEl.parentNode.removeChild(_loaderEl); } catch (e) {}
+    _loaderCount = Math .max(0, _loaderCount -1);
+    if (_loaderCount ===0 && _loaderEl) {
+        try { _loaderEl. parentNode.removeChild(_loaderEl); } catch (e) {}
         _loaderEl = null;
     }
 }
 
-// Run function returning a promise, show loader if it takes longer than delay
 function withLoader(fn, delay = 160) {
     let timer = null;
-    return new Promise(async (resolve, reject) => {
-        timer = setTimeout(() => { showLoader(); }, delay);
+    return new Promise(async (resolve, reject)=> {
+        timer = setTimeout(()=> { showLoader(); }, delay);
         try {
             const r = await fn();
             clearTimeout(timer);
@@ -85,49 +80,45 @@ function withLoader(fn, delay = 160) {
 
 function renderSuggestions(container, items, renderText) {
     if (!container) return;
-    container.innerHTML = '';
-    if (!items || items.length === 0) { container.style.display = 'none'; return; }
-    items.slice(0, 10).forEach(it => {
-        const div = document.createElement('div');
-        div.className = 'suggestion-item';
-        div.textContent = renderText ? renderText(it) : (it.name || it.title || '');
-        div.dataset.value = JSON.stringify(it);
-        container.appendChild(div);
-        // animate in
-        requestAnimationFrame(() => { div.classList.add('in'); });
+    container .innerHTML = '';
+    if (!items || items. length ===0) { container. style.display = 'none'; return; }
+    items. slice(0, 10).forEach(it=> {
+        const div = document. createElement('div');
+        div .className = 'suggestion-item';
+        div. textContent = renderText ? renderText(it): (it.name || it. title || '');
+        div. dataset.value = JSON .stringify(it);
+        container. appendChild(div);
+        requestAnimationFrame(()=> { div. classList.add('in'); });
     });
-    container.style.display = 'block';
+    container .style.display = 'block';
 }
 
 function closeAllSuggestions() {
-    const els = document.querySelectorAll('.suggestions');
-    els.forEach(e => { e.style.display = 'none'; });
+    const els = document. querySelectorAll('.suggestions');
+    els. forEach(e=> { e. style.display = 'none'; });
 }
 
 async function resolveBookFromInput(input) {
     if (!input) return null;
     const list = await fetchBooksCached();
-    const q = String(input).trim();
-    const qLower = q.toLowerCase();
+    const q = String(input). trim();
+    const qLower = q .toLowerCase();
     
-    // If numeric, try id
-    if (/^\d+$/.test(q)) {
+    if (/^\d+$/. test(q)) {
         const id = parseInt(q);
-        const book = list.find(b => b.id === id);
+        const book = list. find(b=> b.id ===id);
         if (book) return book;
     }
     
-    // Try exact match first (case-insensitive)
-    let book = list.find(b => 
-        (b.title || '').toLowerCase() === qLower || 
-        (b.isbn || '').toLowerCase() === qLower
+    let book = list. find(b=> 
+        (b.title || ''). toLowerCase() ===qLower || 
+        (b.isbn || ''). toLowerCase() === qLower
     );
     if (book) return book;
     
-    // Try partial match
-    book = list.find(b => 
-        (b.title || '').toLowerCase().includes(qLower) || 
-        (b.isbn || '').toLowerCase().includes(qLower)
+    book = list .find(b=> 
+        (b.title || ''). toLowerCase().includes(qLower) || 
+        (b.isbn || ''). toLowerCase(). includes(qLower)
     );
     return book || null;
 }
@@ -135,66 +126,58 @@ async function resolveBookFromInput(input) {
 async function resolveMemberFromInput(input) {
     if (!input) return null;
     const list = await fetchMembersCached();
-    const q = String(input).trim();
-    const qLower = q.toLowerCase();
+    const q = String(input) .trim();
+    const qLower = q. toLowerCase();
     
-    // If numeric, try id
-    if (/^\d+$/.test(q)) {
+    if (/^\d+$/ .test(q)) {
         const id = parseInt(q);
-        const member = list.find(m => m.id === id);
+        const member = list .find(m=> m.id=== id);
         if (member) return member;
     }
     
-    // Try exact match first (case-insensitive)
-    let member = list.find(m => (m.name || '').toLowerCase() === qLower);
+    let member = list. find(m=> (m.name || '') .toLowerCase() ===qLower);
     if (member) return member;
     
-    // Try partial match
-    member = list.find(m => (m.name || '').toLowerCase().includes(qLower));
+    member = list. find(m=> (m.name || ''). toLowerCase(). includes(qLower));
     return member || null;
 }
 
-// Helper to show errors
 function showError(msg) {
-    console.error(msg);
+    console. error(msg);
     showToast(msg, true);
 }
 
-// Small toast helper
-// Toast queue using a container
 function _ensureToastContainer() {
-    let c = document.querySelector('.toast-container');
+    let c = document. querySelector('.toast-container');
     if (!c) {
-        c = document.createElement('div');
-        c.className = 'toast-container';
-        document.body.appendChild(c);
+        c = document .createElement('div');
+        c. className = 'toast-container';
+        document. body.appendChild(c);
     }
     return c;
 }
 
 function showToast(message, isError = false, timeout = 3000) {
     const container = _ensureToastContainer();
-    const t = document.createElement('div');
-    t.className = 'toast show';
-    t.style.background = isError ? 'linear-gradient(90deg,#a83a3a,#7a1f1f)' : 'linear-gradient(90deg,#333,#1a1a1a)';
-    t.style.color = '#fff';
-    t.textContent = message;
-    container.appendChild(t);
-    // entrance animation
-    requestAnimationFrame(() => { t.classList.add('show'); });
-    setTimeout(() => { t.classList.remove('show'); t.style.opacity = '0'; }, timeout - 400);
-    setTimeout(() => { if (t.parentNode) t.parentNode.removeChild(t); }, timeout);
+    const t = document. createElement('div');
+    t. className = 'toast show';
+    t. style.background = isError ? 'linear-gradient(90deg,#a83a3a,#7a1f1f)':'linear-gradient(90deg,#333,#1a1a1a)';
+    t .style.color = '#fff';
+    t. textContent = message;
+    container. appendChild(t);
+    requestAnimationFrame(()=> { t. classList.add('show'); });
+    setTimeout(()=> { t. classList.remove('show'); t. style.opacity = '0'; }, timeout -400);
+    setTimeout(()=> { if (t. parentNode) t. parentNode.removeChild(t); }, timeout);
 }
 
-// Confirm modal helper: returns a Promise<boolean>
 function showConfirmModal(title, message) {
-    return new Promise(resolve => {
-        const backdrop = document.createElement('div');
-        backdrop.className = 'modal-backdrop';
+    return new Promise(resolve=> {
+        const backdrop = document. createElement('div');
+        backdrop .className = 'modal-backdrop';
 
-        const modal = document.createElement('div');
-        modal.className = 'modal';
-        modal.innerHTML = `
+        const modal = document .createElement('div');
+        modal. className = 'modal';
+        modal .innerHTML = `
             <div class="modal-title">${title}</div>
             <div class="modal-body">${message}</div>
             <div class="modal-actions">
@@ -203,24 +186,21 @@ function showConfirmModal(title, message) {
             </div>
         `;
 
-        backdrop.appendChild(modal);
-        document.body.appendChild(backdrop);
+        backdrop. appendChild(modal);
+        document .body.appendChild(backdrop);
 
-        // entrance animation
-        requestAnimationFrame(() => { backdrop.classList.add('in'); modal.classList.add('in'); });
+        requestAnimationFrame(()=> { backdrop. classList.add('in'); modal. classList.add('in'); });
 
-        const doClose = (val) => {
-            // exit animation
-            modal.classList.remove('in'); backdrop.classList.remove('in');
-            setTimeout(() => { try { if (backdrop.parentNode) backdrop.parentNode.removeChild(backdrop); } catch (e){}; resolve(val); }, 220);
+        const doClose = (val)=> {
+            modal. classList.remove('in'); backdrop. classList.remove('in');
+            setTimeout(()=> { try { if (backdrop. parentNode) backdrop .parentNode.removeChild(backdrop); } catch (e){}; resolve(val); }, 220);
         };
 
-        modal.querySelector('#modal-cancel').addEventListener('click', () => doClose(false));
-        modal.querySelector('#modal-confirm').addEventListener('click', () => doClose(true));
+        modal. querySelector('#modal-cancel').addEventListener('click', ()=> doClose(false));
+        modal. querySelector('#modal-confirm').addEventListener('click', ()=> doClose(true));
     });
 }
 
-// ---------- DASHBOARD STATS ----------
 function initDashboardStats() {
     const booksCount = document.getElementById('books-count');
     const membersCount = document.getElementById('members-count');
@@ -229,30 +209,29 @@ function initDashboardStats() {
 
     async function loadStats() {
         try {
-            if (refreshStatsBtn) refreshStatsBtn.disabled = true;
-            const allBooks = await window.api.getAllBooks();
-            const allMembers = await window.api.getAllMembers();
-            const bCount = allBooks ? allBooks.length : 0;
-            const mCount = allMembers ? allMembers.length : 0;
-            const borrowed = allBooks ? allBooks.filter(b => b.borrowed).length : 0;
-            if (booksCount) booksCount.textContent = bCount;
-            if (membersCount) membersCount.textContent = mCount;
-            if (borrowedCount) borrowedCount.textContent = borrowed;
-            if (refreshStatsBtn) refreshStatsBtn.disabled = false;
+            if (refreshStatsBtn) refreshStatsBtn. disabled = true;
+            const allBooks = await window .api.getAllBooks();
+            const allMembers = await window. api.getAllMembers();
+            const bCount = allBooks ? allBooks .length: 0;
+            const mCount = allMembers ? allMembers. length :0;
+            const borrowed = allBooks ? allBooks. filter(b=> b.borrowed).length :0;
+            if (booksCount) booksCount. textContent = bCount;
+            if (membersCount) membersCount .textContent = mCount;
+            if (borrowedCount) borrowedCount. textContent = borrowed;
+            if (refreshStatsBtn) refreshStatsBtn .disabled = false;
         } catch (err) {
-            if (booksCount) booksCount.textContent = '--';
-            if (membersCount) membersCount.textContent = '--';
-            if (borrowedCount) borrowedCount.textContent = '--';
-            if (refreshStatsBtn) refreshStatsBtn.disabled = false;
+            if (booksCount) booksCount. textContent = '--';
+            if (membersCount) membersCount. textContent = '--';
+            if (borrowedCount) borrowedCount .textContent = '--';
+            if (refreshStatsBtn) refreshStatsBtn. disabled = false;
         }
     }
 
-    if (refreshStatsBtn) refreshStatsBtn.addEventListener('click', loadStats);
+    if (refreshStatsBtn) refreshStatsBtn. addEventListener('click', loadStats);
     loadStats();
 }
 
-// ---------- PAGE INITIALIZERS ----------
-document.addEventListener('DOMContentLoaded', () => {
+document. addEventListener('DOMContentLoaded', ()=> {
     initLoginPage();
     initSignupPage();
     initDashboard();
@@ -273,7 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupKeyboardShortcuts();
 });
 
-// ---------- QUICK ACTIONS (Dashboard) ----------
+function initQuickActions() {
 function initQuickActions() {
     const bookInput = document.getElementById('qa-book-input');
     const memberInput = document.getElementById('qa-member-input');
@@ -294,50 +273,49 @@ function initQuickActions() {
         });
     }
 
-    const onBookInput = debounce(async () => {
-        const v = bookInput.value.trim();
-        if (!v) { if (bookSug) bookSug.style.display = 'none'; return; }
+    const onBookInput = debounce(async ()=> {
+        const v = bookInput. value.trim();
+        if (!v) { if (bookSug) bookSug .style.display = 'none'; return; }
         const list = await fetchBooksCached();
-        const q = v.toLowerCase();
-        const matches = list.filter(b => String(b.id) === q || (b.title||'').toLowerCase().includes(q) || (b.isbn||'').toLowerCase().includes(q));
-        renderSuggestions(bookSug, matches, (b) => `${b.id} — ${b.title} ${b.borrowed? '(Issued)':''}`);
+        const q = v. toLowerCase();
+        const matches = list. filter(b=> String(b.id) ===q || (b.title||''). toLowerCase().includes(q) || (b.isbn||'') .toLowerCase(). includes(q));
+        renderSuggestions(bookSug, matches, (b)=> `${b.id} — ${b.title} ${b.borrowed? '(Issued)':''}`);
     }, 180);
 
-    const onMemberInput = debounce(async () => {
-        const v = memberInput.value.trim();
-        if (!v) { if (memberSug) memberSug.style.display = 'none'; return; }
+    const onMemberInput = debounce(async ()=> {
+        const v = memberInput. value.trim();
+        if (!v) { if (memberSug) memberSug. style.display = 'none'; return; }
         const list = await fetchMembersCached();
-        const q = v.toLowerCase();
-        const matches = list.filter(m => String(m.id) === q || (m.name||'').toLowerCase().includes(q));
-        renderSuggestions(memberSug, matches, (m) => `${m.id} — ${m.name}`);
+        const q = v .toLowerCase();
+        const matches = list. filter(m=> String(m.id) ===q || (m.name||''). toLowerCase(). includes(q));
+        renderSuggestions(memberSug, matches, (m)=> `${m.id} — ${m.name}`);
     }, 180);
 
-    bookInput.addEventListener('input', onBookInput);
-    memberInput.addEventListener('input', onMemberInput);
+    bookInput. addEventListener('input', onBookInput);
+    memberInput. addEventListener('input', onMemberInput);
 
-    document.addEventListener('click', (e) => {
-        if (!e.target.classList.contains('suggestion-item')) closeAllSuggestions();
+    document. addEventListener('click', (e)=> {
+        if (!e. target.classList.contains('suggestion-item')) closeAllSuggestions();
     });
 
-    // suggestion click handlers (delegation)
-    if (bookSug) bookSug.addEventListener('click', (e) => {
-        const it = e.target.closest('.suggestion-item');
+    if (bookSug) bookSug. addEventListener('click', (e)=> {
+        const it = e. target.closest('.suggestion-item');
         if (!it) return;
-        const obj = JSON.parse(it.dataset.value || '{}');
-        bookInput.value = obj.id ? String(obj.id) : (obj.title || '');
-        bookSug.style.display = 'none';
+        const obj = JSON. parse(it.dataset. value || '{}');
+        bookInput. value = obj.id ? String(obj. id): (obj.title || '');
+        bookSug. style.display = 'none';
     });
-    if (memberSug) memberSug.addEventListener('click', (e) => {
-        const it = e.target.closest('.suggestion-item');
+    if (memberSug) memberSug .addEventListener('click', (e)=> {
+        const it = e .target.closest('.suggestion-item');
         if (!it) return;
-        const obj = JSON.parse(it.dataset.value || '{}');
-        memberInput.value = obj.id ? String(obj.id) : (obj.name || '');
-        memberSug.style.display = 'none';
+        const obj = JSON .parse(it.dataset. value || '{}');
+        memberInput. value = obj.id ? String(obj .id): (obj.name || '');
+        memberSug .style.display = 'none';
     });
 
-    if (issueBtn) issueBtn.addEventListener('click', async () => {
-        const bookVal = bookInput.value.trim();
-        const memberVal = memberInput.value.trim();
+    if (issueBtn) issueBtn. addEventListener('click', async ()=> {
+        const bookVal = bookInput. value.trim();
+        const memberVal = memberInput. value.trim();
         if (!bookVal || !memberVal) { showToast('Enter book and member', true); return; }
         const book = await resolveBookFromInput(bookVal);
         const member = await resolveMemberFromInput(memberVal);
@@ -346,18 +324,18 @@ function initQuickActions() {
         const ok = await showConfirmModal('Quick Issue', `Issue "${book.title}" to ${member.name}?`);
         if (!ok) return;
         try {
-            issueBtn.disabled = true;
-            await window.api.issueBook(book.id, member.id);
+            issueBtn. disabled = true;
+            await window. api.issueBook(book.id, member.id);
             showToast('Book issued');
-            _bookCache.ts = 0; // invalidate cache
+            _bookCache. ts = 0;
             initDashboardStats();
-            issueBtn.disabled = false;
-        } catch (err) { issueBtn.disabled = false; showToast('Issue failed: '+err.message, true); }
+            issueBtn .disabled = false;
+        } catch (err) { issueBtn. disabled = false; showToast('Issue failed: '+err. message, true); }
     });
 
-    if (returnBtn) returnBtn.addEventListener('click', async () => {
-        const bookVal = bookInput.value.trim();
-        const memberVal = memberInput.value.trim();
+    if (returnBtn) returnBtn. addEventListener('click', async ()=> {
+        const bookVal = bookInput .value.trim();
+        const memberVal = memberInput. value.trim();
         if (!bookVal || !memberVal) { showToast('Enter book and member', true); return; }
         const book = await resolveBookFromInput(bookVal);
         const member = await resolveMemberFromInput(memberVal);
@@ -366,17 +344,16 @@ function initQuickActions() {
         const ok = await showConfirmModal('Quick Return', `Return "${book.title}" from ${member.name}?`);
         if (!ok) return;
         try {
-            returnBtn.disabled = true;
-            await window.api.returnBook(book.id, member.id);
+            returnBtn .disabled = true;
+            await window .api.returnBook(book.id, member.id);
             showToast('Book returned');
-            _bookCache.ts = 0;
+            _bookCache .ts = 0;
             initDashboardStats();
-            returnBtn.disabled = false;
-        } catch (err) { returnBtn.disabled = false; showToast('Return failed: '+err.message, true); }
+            returnBtn. disabled = false;
+        } catch (err) { returnBtn. disabled = false; showToast('Return failed: '+err .message, true); }
     });
 }
 
-// ---------- LOGIN PAGE ----------
 function initLoginPage() {
     const loginBtn = document.getElementById('loginBtn');
     if (!loginBtn) return;
@@ -385,7 +362,6 @@ function initLoginPage() {
     const passwordInput = document.getElementById('password');
     const errorDiv = document.getElementById('login-error');
     
-    // Auto-focus username input
     if (usernameInput) setTimeout(() => usernameInput.focus(), 100);
 
     const handleLogin = async () => {
@@ -402,10 +378,8 @@ function initLoginPage() {
             const result = await window.api.login(username, password);
             
             if (result && result.success) {
-                // Store session
                 sessionStorage.setItem('loggedIn', 'true');
                 sessionStorage.setItem('username', username);
-                // Navigate to dashboard
                 window.location.href = 'dashboard.html';
             } else {
                 if (errorDiv) errorDiv.textContent = result.error || "Invalid username or password";
@@ -420,7 +394,6 @@ function initLoginPage() {
 
     loginBtn.addEventListener('click', handleLogin);
     
-    // Allow Enter key to submit
     if (passwordInput) {
         passwordInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') handleLogin();
@@ -428,7 +401,7 @@ function initLoginPage() {
     }
 }
 
-// ---------- SIGNUP PAGE ----------
+function initSignupPage() {
 function initSignupPage() {
     const signupBtn = document.getElementById('signupBtn');
     if (!signupBtn) return;
@@ -439,7 +412,6 @@ function initSignupPage() {
     const errorDiv = document.getElementById('signup-error');
     const successDiv = document.getElementById('signup-success');
     
-    // Auto-focus username input
     if (usernameInput) setTimeout(() => usernameInput.focus(), 100);
 
     const handleSignup = async () => {
@@ -485,7 +457,6 @@ function initSignupPage() {
 
     signupBtn.addEventListener('click', handleSignup);
     
-    // Allow Enter key to submit
     if (confirmInput) {
         confirmInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') handleSignup();
@@ -493,10 +464,9 @@ function initSignupPage() {
     }
 }
 
-// ---------- DASHBOARD ----------
+function initDashboard() {
 // Enhance dashboard: recommendations and logout
 function initDashboard() {
-    // Display logged-in username
     const usernameText = document.getElementById('username-text');
     if (usernameText) {
         const username = sessionStorage.getItem('username');
@@ -505,7 +475,6 @@ function initDashboard() {
         }
     }
 
-    // Logout button handler
     const logoutBtn = document.getElementById('logout-btn');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', () => {
@@ -578,7 +547,6 @@ function initDashboard() {
                 requestAnimationFrame(() => { d.classList.add('in'); });
             });
         } catch (err) {
-            // ignore
         }
     }
 }
@@ -588,7 +556,7 @@ function initBackButtons() {
     backButtons.forEach(btn => btn.addEventListener("click", () => window.history.back()));
 }
 
-// ---------- ADD BOOK PAGE ----------
+function initAddBookPage() {
 function initAddBookPage() {
     const addBookSubmit = document.getElementById('add-book-submit');
     if (!addBookSubmit) return;
@@ -598,11 +566,9 @@ function initAddBookPage() {
     const coverUrlInput = document.getElementById('book-cover-url');
     const coverPreview = document.getElementById('cover-preview');
     
-    // Auto-focus title input for better UX
     const titleInput = document.getElementById('book-title');
     if (titleInput) setTimeout(() => titleInput.focus(), 100);
 
-    // Auto-fetch book cover from Google Books API
     if (fetchCoverBtn) {
         fetchCoverBtn.addEventListener('click', async () => {
             const isbn = document.getElementById('book-isbn').value.trim();
@@ -623,7 +589,6 @@ function initAddBookPage() {
                     const coverUrl = book.imageLinks?.thumbnail || book.imageLinks?.smallThumbnail;
                     
                     if (coverUrl) {
-                        // Use HTTPS version of URL
                         const httpsUrl = coverUrl.replace('http:', 'https:');
                         coverUrlInput.value = httpsUrl;
                         coverPreview.innerHTML = `<img src="${httpsUrl}" alt="Book cover" style="max-height: 150px; border: 1px solid #ddd; border-radius: 4px;">`;
@@ -671,14 +636,13 @@ function initAddBookPage() {
     });
 }
 
-// ---------- ADD MEMBER PAGE ----------
+function initAddMemberPage() {
 function initAddMemberPage() {
     const addMemberSubmit = document.getElementById('add-member-submit');
     if (!addMemberSubmit) return;
 
     const msgDiv = document.getElementById('addmember-message');
     
-    // Auto-focus name input for better UX
     const nameInput = document.getElementById('member-name');
     if (nameInput) setTimeout(() => nameInput.focus(), 100);
 
@@ -692,7 +656,6 @@ function initAddMemberPage() {
         }
 
         try {
-            // Don't pass ID — backend auto-increments
             await window.api.addMember(name, address);
             if (msgDiv) { msgDiv.style.color = "green"; msgDiv.textContent = `✅ Member "${name}" added successfully!`; }
             document.getElementById('member-name').value = "";
@@ -773,7 +736,6 @@ function initDeleteBookPage() {
         }
     });
 
-    // Attach event listeners
     const debouncedSearch = debounce((ev) => doSearch(ev.target.value.trim()), 220);
     input.addEventListener('input', debouncedSearch);
     searchBtn.addEventListener('click', () => doSearch(input.value.trim()));
@@ -798,7 +760,6 @@ function initDeleteMemberPage() {
             const result = await window.api.searchMember(query);
             resultDiv.innerHTML = "";
             
-            // Normalize to array (backend might return single object or array)
             const results = result ? (Array.isArray(result) ? result : [result]) : [];
             
             if (!results || results.length === 0) {
@@ -852,14 +813,13 @@ function initDeleteMemberPage() {
         }
     });
 
-    // Attach event listeners
     const debouncedSearch = debounce((ev) => doSearch(ev.target.value.trim()), 220);
     input.addEventListener('input', debouncedSearch);
     searchBtn.addEventListener('click', () => doSearch(input.value.trim()));
     input.addEventListener('keydown', (e) => { if (e.key === 'Enter') doSearch(input.value.trim()); });
 }
 
-// ---------- VIEW BOOKS PAGE ----------
+function initViewBooksPage() {
 function initViewBooksPage() {
     const booksTable = document.getElementById('books-table');
     if (!booksTable) return;
@@ -915,7 +875,6 @@ function initViewBooksPage() {
         }
     }
 
-    // initial load
     loadBooks();
 
     // add sortable headers (assumes columns: Cover, ID, Title, Author, ISBN, Genre, Status)
@@ -962,7 +921,7 @@ function initViewBooksPage() {
     });
 
 
-// ---------- VIEW MEMBERS PAGE ----------
+function initViewMembersPage() {
 function initViewMembersPage() {
     const membersTable = document.getElementById('members-table');
     if (!membersTable) return;
@@ -970,9 +929,7 @@ function initViewMembersPage() {
     const tbody = membersTable.querySelector('tbody');
     let members = [];
 
-    // --------------------------
     // VIEW MEMBER DETAILS CLICK
-    // --------------------------
     tbody.addEventListener('click', async (e) => {
         const btn = e.target.closest && e.target.closest('.view-member-btn');
         if (!btn) return;
@@ -1003,9 +960,7 @@ function initViewMembersPage() {
         await showInfoModal('Member Details', html);
     });
 
-    // --------------------------
     // LOAD MEMBERS
-    // --------------------------
     async function loadMembers(sortKey = null, sortDir = 'asc') {
         try {
             const refreshBtn = document.getElementById('refresh-members-btn');
@@ -1045,14 +1000,12 @@ function initViewMembersPage() {
 
                 let borrowedTitles = [];
 
-                // direct borrowed IDs
                 const singleBorrowed = member.borrowedBookID || member.borrowedBookId;
                 if (singleBorrowed) {
                     const f = (booksList || []).find(b => b.id === singleBorrowed);
                     if (f) borrowedTitles.push(f.title);
                 }
 
-                // arrays of borrowed books
                 const arr = member.borrowed || member.borrowedBooks;
                 if (Array.isArray(arr)) {
                     arr.forEach(id => {
@@ -1061,7 +1014,6 @@ function initViewMembersPage() {
                     });
                 }
 
-                // fallback: books issuedTo
                 const fallback = (booksList || []).filter(b =>
                     b.borrowed &&
                     (String(b.issuedTo) === String(member.id) ||
@@ -1103,9 +1055,7 @@ function initViewMembersPage() {
     // INITIAL LOAD
     loadMembers();
 
-    // --------------------------
     // SORTABLE HEADERS
-    // --------------------------
     const headers = membersTable.querySelectorAll('th');
     if (headers.length >= 3) {
         const keyMap = ['id', 'name', 'address'];
@@ -1140,15 +1090,11 @@ function initViewMembersPage() {
         });
     }
 
-    // --------------------------
     // REFRESH BUTTON
-    // --------------------------
     const refreshBtn = document.getElementById('refresh-members-btn');
     if (refreshBtn) refreshBtn.addEventListener('click', loadMembers);
 
-    // --------------------------
     // EXPORT CSV
-    // --------------------------
     const exportMembersBtn = document.getElementById('export-members-btn');
     if (exportMembersBtn) exportMembersBtn.addEventListener('click', async () => {
         try {
@@ -1201,7 +1147,7 @@ function initViewMembersPage() {
 }
 
 
-// ---------- SEARCH BOOK PAGE ----------
+function initSearchBookPage() {
 function initSearchBookPage() {
     const searchBookBtnPage = document.getElementById('search-book-btn');
     if (!searchBookBtnPage) return;
@@ -1263,7 +1209,7 @@ function initSearchBookPage() {
     input.addEventListener('keydown', (e) => { if (e.key === 'Enter') doSearch(input.value.trim()); });
 }
 
-// ---------- SEARCH MEMBER PAGE ----------
+function initSearchMemberPage() {
 function initSearchMemberPage() {
     const searchMemberBtnPage = document.getElementById('search-member-btn');
     if (!searchMemberBtnPage) return;
@@ -1287,7 +1233,6 @@ function initSearchMemberPage() {
             if (result && !(Array.isArray(result) && result.length === 0)) {
                 items = Array.isArray(result) ? result : [result];
             } else {
-                // Backend returned nothing; fallback to client-side case-insensitive search
                 const allMembers = await fetchMembersCached();
                 items = (allMembers || []).filter(m => {
                     const name = (m.name || '').toLowerCase();
@@ -1327,7 +1272,7 @@ function initSearchMemberPage() {
     input.addEventListener('keydown', (e) => { if (e.key === 'Enter') doMemberSearch(input.value.trim()); });
 }
 
-// ---------- ISSUE BOOK PAGE ----------
+function initIssueBookPage() {
 function initIssueBookPage() {
     const issueBookSubmit = document.getElementById('issue-book-btn');
     if (!issueBookSubmit) return;
@@ -1358,7 +1303,6 @@ function initIssueBookPage() {
                 return;
             }
 
-            // Resolve member (by ID or name)
             const member = await resolveMemberFromInput(memberVal);
             if (!member) {
                 if (msgDiv) { msgDiv.style.color = "red"; msgDiv.textContent = "Member not found: " + memberVal; }
@@ -1389,7 +1333,6 @@ function initIssueBookPage() {
     });
 }
 
-// ---------- RETURN BOOK PAGE ----------
 function initReturnBookPage() {
     const returnBookSubmit = document.getElementById('return-book-btn');
     if (!returnBookSubmit) return;
@@ -1420,7 +1363,6 @@ function initReturnBookPage() {
                 return;
             }
 
-            // Resolve member (by ID or name)
             const member = await resolveMemberFromInput(memberVal);
             if (!member) {
                 if (msgDiv) { msgDiv.style.color = "red"; msgDiv.textContent = "Member not found: " + memberVal; }
@@ -1428,7 +1370,6 @@ function initReturnBookPage() {
                 return;
             }
 
-            // Confirm with modal
             const ok = await showConfirmModal('Confirm Return', `Return "${book.title}" from ${member.name}?`);
             if (!ok) {
                 returnBookSubmit.disabled = false;
@@ -1452,7 +1393,6 @@ function initReturnBookPage() {
     });
 }
 
-// ---------- BORROWED BOOKS PAGE ----------
 function initBorrowedBooksPage() {
     const borrowedBooksTable = document.getElementById('borrowed-books-table');
     if (!borrowedBooksTable) return;
@@ -1491,7 +1431,6 @@ function initBorrowedBooksPage() {
         }
     }
 
-    // initial load
     loadBorrowed();
 
     // refresh button
@@ -1526,7 +1465,6 @@ function initBorrowedBooksPage() {
     }
 }
 
-// ---------- KEYBOARD SHORTCUTS ----------
 function setupKeyboardShortcuts() {
     console.log('Keyboard shortcuts initialized');
     document.addEventListener('keydown', (e) => {
@@ -1552,7 +1490,6 @@ function setupKeyboardShortcuts() {
                 qaInput.focus();
                 qaInput.select();
             } else {
-                // Navigate to dashboard if not there
                 window.location.href = 'dashboard.html';
             }
             return;
